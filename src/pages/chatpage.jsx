@@ -4,7 +4,8 @@ import '../cssfiles/chatPage.css';
 import { Link, useParams } from 'react-router-dom';
 import EmojiPicker from "emoji-picker-react";
 import { useTranslation } from 'react-i18next';
-import socket from "../socket"; 
+import socket from "../socket";
+import API_URL from '../utils/api';
 
 function ChatPage() {
     const { userId, username } = useParams();
@@ -25,7 +26,7 @@ function ChatPage() {
         if (userProfiles[username]) return userProfiles[username]; // Return cached profile
         
         try {
-            const response = await fetch(`http://localhost:5000/api/profile/${username}`, {
+            const response = await fetch(`${API_URL}/api/profile/${username}`, {
                 method: "GET",
                 headers: { 
                     'Authorization': `Bearer ${token}`,
@@ -72,7 +73,7 @@ useEffect(() => {
   }
 
   // Fetch chat messages
-  fetch(`http://localhost:5000/api/dm/chat/${userId}`, {
+  fetch(`${API_URL}/api/dm/chat/${userId}`, {
     method: "GET",
     headers: { 
             'Authorization': `Bearer ${token}`,
@@ -100,7 +101,7 @@ useEffect(() => {
     });
 
   // Fetch user profile for avatar
-  fetch(`http://localhost:5000/api/profile/${username}`, {
+  fetch(`${API_URL}/api/profile/${username}`, {
     method: "GET",
     headers: { 
             'Authorization': `Bearer ${token}`,
@@ -130,7 +131,7 @@ useEffect(() => {
   socket.emit("send-dm", newMessage);
   setMessage("");
 
-  fetch('http://localhost:5000/api/dm/chat/send', {
+  fetch(`${API_URL}/api/dm/chat/send`, {
     method: 'POST',
     headers: { 
             'Authorization': `Bearer ${token}`,

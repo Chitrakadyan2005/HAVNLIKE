@@ -4,6 +4,7 @@ import React, { useState , useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import StreamRoomModal from '../components/StreamRoomModal';
+import API_URL from '../utils/api';
 
 function Room() {
   const [selectedRoom, setSelectedRoom] = useState(null);
@@ -31,7 +32,7 @@ function Room() {
  useEffect(() => {
     const fetchSuggestions = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/suggestions", {
+        const res = await fetch(`${API_URL}/api/suggestions`, {
           headers: {
             "Authorization": `Bearer ${token}`,
           },
@@ -54,7 +55,7 @@ const handleVote = async (id, type) => {
   }
 
   try {
-    const response = await fetch(`http://localhost:5000/api/suggestions/${id}/vote`, {
+    const response = await fetch(`${API_URL}/api/suggestions/${id}/vote`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -84,7 +85,7 @@ const handleVote = async (id, type) => {
     if (!suggestionText.trim()) return;
 
     try {
-      const response = await fetch("http://localhost:5000/api/suggestions", {
+      const response = await fetch(`${API_URL}/api/suggestions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -112,7 +113,7 @@ const handleVote = async (id, type) => {
   const handleCreateRoom = async (roomCode, roomName) => {
     try {
       // Create room in backend
-      const response = await fetch("http://localhost:5000/api/stream-rooms", {
+      const response = await fetch(`${API_URL}/api/stream-rooms`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -146,7 +147,7 @@ const handleVote = async (id, type) => {
   const handleJoinRoom = async (roomCode, roomName) => {
     try {
       // Verify room exists in backend
-      const response = await fetch(`http://localhost:5000/api/stream-rooms/${roomCode}`, {
+      const response = await fetch(`${API_URL}/api/stream-rooms/${roomCode}`, {
         headers: {
           "Authorization": `Bearer ${token}`,
         },

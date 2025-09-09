@@ -4,6 +4,7 @@ import '../cssfiles/settings.css';
 import '../cssfiles/layout.css';
 import i18n from 'i18next';
 import { useTranslation } from 'react-i18next';
+import API_URL from '../utils/api';
 
 
 function Settings() {
@@ -20,7 +21,7 @@ const handleDeleteAccount = async () => {
     const token = sessionStorage.getItem("token");
     console.log("Token from sessionStorage:", token);
 
-    const response = await fetch('http://localhost:5000/api/auth/delete', {
+    const response = await fetch(`${API_URL}/api/auth/delete`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',

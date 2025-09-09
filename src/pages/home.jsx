@@ -4,6 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import EmojiPicker from "emoji-picker-react";
 import { useTranslation } from 'react-i18next';
+import API_URL from '../utils/api';
+
 
 function Home() {
   const [posts, setPosts] = useState([]);
@@ -29,7 +31,7 @@ function Home() {
 
     const fetchPosts = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/home/posts', {
+        const res = await fetch(`${API_URL}/api/home/posts`, {
           headers: { 
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -80,7 +82,7 @@ function Home() {
     if (!token) return alert("Please login first.");
 
     try {
-      const res = await fetch(`http://localhost:5000/api/home/posts/${postId}/like`, {
+      const res = await fetch(`${API_URL}/api/home/posts/${postId}/like`, {
         method: 'POST',
         headers: { 
           'Authorization': `Bearer ${token}`,
@@ -115,7 +117,7 @@ function Home() {
     if (!newPostText.trim()) return;
 
     try {
-      const res = await fetch('http://localhost:5000/api/home/posts', {
+      const res = await fetch(`${API_URL}/api/home/posts`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json', 
@@ -159,7 +161,7 @@ function Home() {
     if (!text || !token) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/home/posts/${postId}/comment`, {
+      const res = await fetch(`${API_URL}/api/home/posts/${postId}/comment`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json', 

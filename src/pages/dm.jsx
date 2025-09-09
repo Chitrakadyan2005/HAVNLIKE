@@ -4,6 +4,7 @@ import '../cssfiles/dm.css';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import socket from "../socket";
+import API_URL from '../utils/api';
 
 function Dm(){
     const[conversations, setConversations] = useState([]);
@@ -46,7 +47,7 @@ function Dm(){
     try {
       const token = sessionStorage.getItem('token');
 
-      const res = await fetch('http://localhost:5000/api/dm/chat/list', {
+      const res = await fetch(`${API_URL}/api/dm/chat/list`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

@@ -3,7 +3,8 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import "../cssfiles/profile.css";
 import "../cssfiles/layout.css";
 import { useTranslation } from 'react-i18next';
-import {jwtDecode} from "jwt-decode"; // ✅ fixed import
+import {jwtDecode} from "jwt-decode";
+import API_URL from '../utils/api';
 
 function Profile() {
   const navigate = useNavigate();
@@ -58,7 +59,7 @@ function Profile() {
     setShowAvatarOptions(false);
 
     try {
-      await fetch(`http://localhost:5000/api/profile/avatar`, {
+      await fetch(`${API_URL}/api/profile/avatar`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -80,7 +81,7 @@ function Profile() {
     setShowAvatarOptions(false);
 
     try {
-      const res = await fetch(`http://localhost:5000/api/profile/avatar`, {
+      const res = await fetch(`${API_URL}/api/profile/avatar`, {
         method: "PUT",
         headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
         body: formData,
@@ -105,8 +106,8 @@ function Profile() {
   const handleFollow = async () => {
     try {
       const url = isFollowing
-        ? `http://localhost:5000/api/profile/unfollow/${profile.id}`
-        : `http://localhost:5000/api/profile/follow/${profile.id}`;
+        ? `${API_URL}/api/profile/unfollow/${profile.id}`
+        : `${API_URL}/api/profile/follow/${profile.id}`;
 
       const response = await fetch(url, {
         method: "POST",
@@ -129,7 +130,7 @@ function Profile() {
   useEffect(() => {
     async function fetchProfile() {
       try {
-        const res = await fetch(`http://localhost:5000/api/profile/${username}`, {
+        const res = await fetch(`${API_URL}/api/profile/${username}`, {
           headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
         });
 
@@ -147,7 +148,7 @@ function Profile() {
         if (data.id && loggedInUsername && loggedInUsername !== username.toLowerCase()) {
           try {
             const followRes = await fetch(
-              `http://localhost:5000/api/profile/is-Following/${data.id}`,
+              `${API_URL}/api/profile/is-Following/${data.id}`,
               { headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` } }
             );
 

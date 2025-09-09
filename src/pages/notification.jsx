@@ -3,6 +3,7 @@ import '../cssfiles/notification.css';
 import '../cssfiles/layout.css';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import API_URL from '../utils/api';
 
 function Notification() {
     const [notifications, setNotifications] = useState([]);
@@ -16,7 +17,7 @@ function Notification() {
         const fetchNotifications = async () => {
             try {
                 const token = sessionStorage.getItem("token"); // change if you store token differently
-                const res = await fetch("http://localhost:5000/api/notification", {
+                const res = await fetch(`${API_URL}/api/notification`, {
                     method:"GET",
                     headers: {
                         "Content-Type": "application/json",
