@@ -1,0 +1,181 @@
+/* Settings Feed */
+.settings-feed {
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.feed-wrapper {
+  max-width: 700px;
+  margin: 0 auto;
+  display: grid;
+  gap: 20px;
+}
+
+.settings-feed h2 {
+  margin-bottom: 10px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--pink-700);
+}
+
+/* Each settings block */
+.settings-option {
+  display: grid;
+  grid-template-columns: auto 1fr auto; /* icon | content | action */
+  align-items: center;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--rose-200);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
+  gap: 16px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.settings-option:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+/* Icon styling */
+.settings-option i {
+  font-size: 28px;
+  color: var(--pink-500);
+}
+
+/* Title + description block */
+.settings-option div {
+  display: flex;
+  flex-direction: column;
+}
+.settings-option h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-800);
+}
+.settings-option p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--text-600);
+}
+
+/* Edit link */
+.edit-link {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--pink-600);
+  text-decoration: none;
+}
+
+
+/* Buttons with bubble effect */
+.btn {
+  position: relative;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  font-family: "Source Code Pro", sans-serif;
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: 14px;
+  color: #fff;
+
+  background: linear-gradient(135deg, var(--pink-300), var(--pink-500));
+  box-shadow: var(--shadow-color, rgba(0,0,0,0.25)) 2px 2px 22px;
+  border-radius: 8px;
+  z-index: 0;
+  overflow: hidden;
+  transition: filter 0.2s, transform 0.2s;
+}
+
+.btn:hover {
+  background: linear-gradient(135deg, var(--pink-500), var(--pink-700));
+  filter: brightness(1.08);
+  transform: scale(1.05);
+}
+
+.btn:focus {
+  outline: none;
+  box-shadow: var(--pink-500) 2px 2px 22px;
+}
+
+/* Danger button keeps bubble effect but red */
+.btn.danger {
+  background: linear-gradient(135deg, #f87171, #dc2626);
+}
+
+.btn.danger:hover {
+  background: linear-gradient(135deg, #dc2626, #9f3131);
+}
+
+/* bubbles */
+.btn::before {
+  content: '';
+  pointer-events: none;
+  opacity: .6;
+  background:
+    radial-gradient(circle at 20% 35%,  transparent 0,  transparent 2px, #fff 3px, #fff 4px, transparent 4px),
+    radial-gradient(circle at 75% 44%, transparent 0,  transparent 2px, #fff 3px, #fff 4px, transparent 4px),
+    radial-gradient(circle at 46% 52%, transparent 0, transparent 4px, #fff 5px, #fff 6px, transparent 6px);
+
+  width: 100%;
+  height: 300%;
+  top: 0;
+  left: 0;
+  position: absolute;
+  animation: bubbles 5s linear infinite both;
+}
+
+@keyframes bubbles {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-66.666%);
+  }
+}
+
+/* Dropdown (privacy toggle) */
+.privacy-dropdown {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #fff;
+  border: 1px solid var(--rose-200);
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: var(--shadow);
+}
+.privacy-dropdown button {
+  background: transparent;
+  border: 0;
+  padding: 6px;
+  border-radius: 6px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-700);
+}
+.privacy-dropdown button:hover {
+  background: var(--pink-100);
+}
+.privacy-dropdown button.active {
+  font-weight: 700;
+  color: var(--pink-600);
+}
+
+/* Dropdown for language */
+.dropdown {
+  padding: 6px 8px;
+  border: 1px solid var(--rose-200);
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Logout block highlight */
+.settings-option.logout {
+  background: var(--pink-50);
+  border: 1px solid var(--pink-200);
+}

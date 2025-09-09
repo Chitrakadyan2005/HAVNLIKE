@@ -1,0 +1,121 @@
+{
+  "app": {
+    "title": "Las chicas tienen sentimientos 💗",
+    "tagline": "Un rincón tranquilo para tus pensamientos más fuertes 💭 porque tus sentimientos también merecen un hogar 💖",
+    "join": "¿Te unes??"
+  },
+
+  "username": {
+    "headingNew": "¿Cómo quieres que te llamemos? 💕",
+    "headingReturning": "¡Bienvenida de nuevo! 💖",
+    "inputName": "Ingresa tu dulce nombre...",
+    "createSecret": "Crea una frase secreta (mínimo 6 caracteres)...",
+    "enterSecret": "Ingresa tu frase secreta (mínimo 5 caracteres)...",
+    "continue": "Continuar",
+    "login": "Iniciar sesión",
+    "toggleToLogin": "¿Ya tienes una cuenta? Inicia sesión",
+    "toggleToRegister": "¿Nueva usuaria? Crea una cuenta"
+  },
+
+  "home": {
+    "navbar": "Las chicas tienen sentimientos 💖",
+    "greeting": "✨ ¡Bienvenida, linda! 🌸 Nos alegra mucho que estés aquí 💕 explora, diviértete ✨ y no seas tímida, este lugar es todo sobre buenas vibras 💌😉",
+    "reachOut": "¿Quieres ponerte en contacto?",
+    "tabs": {
+      "home": "Mi Burbuja",
+      "search": "Mirar",
+      "room": "Sala de Derrames",
+      "dm": "Susurros",
+      "notification": "Notificaciones",
+      "settings": "Control",
+      "profile": "Tiempo Para Mí"
+    },
+    "post": {
+      "writeComment": "Escribe un comentario...",
+      "replies": "Respuestas",
+      "reply": "Respuesta",
+      "addFeeling": "+ Agrega un nuevo sentimiento",
+      "placeholder": "¿En qué estás pensando?"
+    }
+  },
+
+  "chatPage": {
+  "title": "Susurros 💌",
+  "typeMessage": "Escribe algo dulce...",
+  "send": "Enviar",
+  "emptyState": "Aún no hay mensajes... comienza un susurro 💬",
+  "back": "Volver a los mensajes"
+},
+
+"searchPage": {
+  "title": "Echa un vistazo a los sentimientos 👀",
+  "searchPlaceholder": "Buscar por nombre o sentimiento...",
+  "noResults": "No se encontraron almas coincidentes 😔",
+  "loading": "Descubriendo sentimientos..."
+},
+
+  "dm": {
+    "heading": "Susurros 💬",
+    "noMessages": "Aún no hay mensajes",
+    "now": "Ahora"
+  },
+
+  "posts": {
+    "nairobi": "¡Que empiece el matriarcado! 👑💥",
+    "tokyo": "Acabo de incendiar el sistema 🔥👠"
+  },
+
+  "profile": {
+    "posts": "Publicaciones",
+    "followers": "Seguidores",
+    "following": "Siguiendo",
+    "myPosts": "Mis Publicaciones"
+  },
+
+  "publicChat": {
+      "back": "←",
+      "placeholder": "Escribe un mensaje...",
+      "send": "Enviar"
+    },
+
+    "room": {
+      "enter": "Entrar",
+      "joinPrompt": "¿Cómo te gustaría unirte?",
+      "textChat": "Chat de Texto",
+      "streamRoom": "Sala de Transmisión",
+      "close": "Cerrar"
+    },
+
+    "settings": {
+      "title": "Configuraciones ⚙️",
+      "profile": "Configuración de Perfil",
+      "profileDesc": "Cambia tu nombre de usuario, nombre visible o biografía",
+      "privacy": "Privacidad",
+      "privacyDesc": "Gestiona quién puede ver tu perfil",
+      "currently": "Actualmente:",
+      "private": "Privado 🔒",
+      "public": "Público 🌍",
+      "language": "Idioma",
+      "languageDesc": "Selecciona tu idioma preferido",
+      "emailUpdates": "Actualizaciones por Correo",
+      "emailDesc": "Recibe notas de amor y consejos semanales 💌",
+      "notifications": "Notificaciones",
+      "notificationsDesc": "Controla tus preferencias de alerta",
+      "theme": "Tema",
+      "themeDesc": "Modo claro u oscuro",
+      "account": "Cuenta",
+      "accountDesc": "Eliminar o desactivar tu cuenta",
+      "logout": "Cerrar sesión",
+      "logoutDesc": "Terminar tu sesión actual"
+    },
+    
+    "stream": {
+      "spotify": "Spotify",
+      "camera": "Cámara",
+      "micOn": "Micrófono Activado",
+      "micOff": "Micrófono Desactivado",
+      "karaoke": "Karaoke",
+      "games": "Juegos",
+      "share": "Compartir Pantalla"
+    }
+}

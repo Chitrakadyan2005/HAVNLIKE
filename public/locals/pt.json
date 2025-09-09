@@ -1,0 +1,121 @@
+{
+  "app": {
+    "title": "As Garotas Têm Sentimentos 💗",
+    "tagline": "Um cantinho tranquilo para seus pensamentos mais barulhentos 💭 porque seus sentimentos também merecem um lar 💖",
+    "join": "Quer entrar??"
+  },
+
+  "username": {
+    "headingNew": "Como você gostaria que a gente te chamasse? 💕",
+    "headingReturning": "Bem-vinda de volta! 💖",
+    "inputName": "Digite seu nome fofo...",
+    "createSecret": "Crie uma frase secreta (mín. 6 caracteres)...",
+    "enterSecret": "Digite sua frase secreta (mín. 5 caracteres)...",
+    "continue": "Continuar",
+    "login": "Entrar",
+    "toggleToLogin": "Já tem uma conta? Entrar",
+    "toggleToRegister": "Nova por aqui? Criar conta"
+  },
+
+  "home": {
+    "navbar": "As Garotas Têm Sentimentos 💖",
+    "greeting": "✨ Bem-vinda, fofinha 🌸 estamos tão felizes que você está aqui 💕 explore, divirta-se ✨ e não seja tímida, este lugar é só boas vibrações 💌😉",
+    "reachOut": "Quer entrar em contato?",
+    "tabs": {
+      "home": "Meu Cantinho",
+      "search": "Espiar",
+      "room": "Sala do Desabafo",
+      "dm": "Sussurros",
+      "notification": "Alertas",
+      "settings": "Controle",
+      "profile": "Meu Momento"
+    },
+    "post": {
+      "writeComment": "Escreva um comentário...",
+      "replies": "Respostas",
+      "reply": "Responder",
+      "addFeeling": "+ Adicionar um novo sentimento",
+      "placeholder": "O que está na sua mente?"
+    }
+  },
+
+  "chatPage": {
+    "title": "Sussurros 💌",
+    "typeMessage": "Digite algo doce...",
+    "send": "Enviar",
+    "emptyState": "Ainda não há mensagens... comece um sussurro 💬",
+    "back": "Voltar para Mensagens"
+  },
+
+  "searchPage": {
+    "title": "Espiar os Sentimentos 👀",
+    "searchPlaceholder": "Pesquise por nome ou sentimento...",
+    "noResults": "Nenhuma alma correspondente encontrada 😔",
+    "loading": "Descobrindo sentimentos..."
+  },
+
+  "dm": {
+    "heading": "Sussurros 💬",
+    "noMessages": "Ainda não há mensagens",
+    "now": "Agora"
+  },
+
+  "posts": {
+    "nairobi": "Que comece o matriarcado! 👑💥",
+    "tokyo": "Acabei de derrubar o sistema 🔥👠"
+  },
+
+  "profile": {
+    "posts": "Publicações",
+    "followers": "Seguidores",
+    "following": "Seguindo",
+    "myPosts": "Minhas Publicações"
+  },
+
+  "publicChat": {
+    "back": "←",
+    "placeholder": "Digite uma mensagem...",
+    "send": "Enviar"
+  },
+
+  "room": {
+    "enter": "Entrar",
+    "joinPrompt": "Como você gostaria de entrar?",
+    "textChat": "Chat de Texto",
+    "streamRoom": "Sala de Transmissão",
+    "close": "Fechar"
+  },
+
+  "settings": {
+    "title": "Configurações ⚙️",
+    "profile": "Configurações de Perfil",
+    "profileDesc": "Altere seu nome de usuário, nome de exibição ou biografia",
+    "privacy": "Privacidade",
+    "privacyDesc": "Gerencie quem pode ver seu perfil",
+    "currently": "Atualmente:",
+    "private": "Privado 🔒",
+    "public": "Público 🌍",
+    "language": "Idioma",
+    "languageDesc": "Selecione seu idioma preferido",
+    "emailUpdates": "Atualizações por E-mail",
+    "emailDesc": "Receba recados e dicas semanais 💌",
+    "notifications": "Notificações",
+    "notificationsDesc": "Controle suas preferências de alerta",
+    "theme": "Tema",
+    "themeDesc": "Modo claro ou escuro",
+    "account": "Conta",
+    "accountDesc": "Excluir ou desativar sua conta",
+    "logout": "Sair",
+    "logoutDesc": "Encerre sua sessão atual"
+  },
+
+  "stream": {
+    "spotify": "Spotify",
+    "camera": "Câmera",
+    "micOn": "Microfone Ligado",
+    "micOff": "Microfone Desligado",
+    "karaoke": "Karaokê",
+    "games": "Jogos",
+    "share": "Compartilhar Tela"
+  }
+}

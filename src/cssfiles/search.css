@@ -1,0 +1,11 @@
+@import './layout.css';
+
+/* Search */
+.SearchPage { min-height: 100vh; }
+.search-bar { position: sticky; top: 0; z-index: 2; background: rgba(255,255,255,0.8); border: 1px solid var(--rose-200); border-radius: 12px; padding: 10px; margin-bottom: 10px; }
+.search-input { width: 100%; border: 0; outline: none; background: transparent; font-size: 15px; }
+
+.search-result { display: grid; gap: 10px; }
+.result { display: flex; gap: 12px; align-items: center; background: rgba(255,255,255,0.85); border: 1px solid var(--rose-200); border-radius: 12px; padding: 10px; box-shadow: var(--shadow); }
+.search-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--pink-300); }
+.search-text span { color: var(--text-700); }

@@ -1,0 +1,7 @@
+@import './layout.css';
+
+/* Notifications */
+.notificationPage { min-height: 100vh; }
+.feed .post { background: rgba(255,255,255,0.85); border: 1px solid var(--rose-200); border-radius: var(--radius-lg); padding: 14px; margin: 10px 0; box-shadow: var(--shadow); }
+.post-header { display: flex; align-items: center; justify-content: space-between; }
+.post-time { color: var(--text-500); font-size: 12px; }

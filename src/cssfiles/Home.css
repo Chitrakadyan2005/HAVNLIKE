@@ -1,0 +1,45 @@
+@import './layout.css';
+
+/* Home Feed */
+.HomePage { min-height: 100vh; }
+
+/* feed content */
+.feed .post {
+  background: rgba(255,255,255,0.8);
+  border: 1px solid var(--rose-200);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  margin: 10px 0;
+  box-shadow: var(--shadow);
+}
+.post-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.post-avatar { width: 36px; height: 36px; border-radius: 50%; margin-right: 10px; object-fit: cover; border: 2px solid var(--pink-300); }
+.post-header h3 { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 16px; }
+.post-time { color: var(--text-500); font-size: 12px; }
+.post-body p { margin: 10px 0 6px; color: var(--text-700); }
+
+.post-actions { display: flex; align-items: center; gap: 12px; }
+.post-actions .liked { color: var(--pink-600); }
+.likes-count, .comment-count { color: var(--text-500); font-size: 13px; }
+
+/* Comments */
+.comment-section { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--rose-200); }
+.comment-box { display: flex; align-items: center; gap: 8px; background: var(--white); border: 1px solid var(--rose-200); border-radius: 12px; padding: 8px 10px; }
+.comment-box input { flex: 1; border: 0; outline: none; }
+.emoji-btn { background: linear-gradient(135deg, var(--pink-300), var(--pink-500)); color: #fff; border: 0; border-radius: 8px; padding: 6px 8px; cursor: pointer; }
+.emoji-popup { position: absolute; z-index: 10; }
+.send-icon { color: var(--pink-600); }
+
+.comment-replies { margin-top: 10px; display: grid; gap: 8px; }
+.single-comment { background: var(--pink-50); border: 1px solid var(--rose-100); border-radius: 8px; padding: 8px; color: var(--text-700); }
+
+/* Add Post */
+.popup-post-box { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,0.1); }
+.post-input { position: relative; display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--rose-200); border-radius: 12px; padding: 10px 12px; width: min(640px, 90vw); box-shadow: var(--shadow); }
+.post-input input { flex: 1; border: 0; outline: none; }
+.emoji-picker-container { position: absolute; top: 110%; right: 0; background: #fff; border: 1px solid var(--rose-200); border-radius: 12px; padding: 8px; box-shadow: var(--shadow); }
+.close-emoji { position: absolute; top: -10px; right: -10px; background: var(--pink-500); color: #fff; border-radius: 50%; width: 24px; height: 24px; display: grid; place-items: center; }
+
+.add-post-bottom { position: sticky; bottom: 8px; display: grid; place-items: center; margin-top: 10px; }
+.add-post-btn { background: linear-gradient(135deg, var(--pink-300), var(--pink-500)); color: #fff; border: 0; padding: 12px 16px; border-radius: 999px; box-shadow: var(--shadow); cursor: pointer; font-weight: 700; }
+.add-post-btn:hover { filter: brightness(1.03); }

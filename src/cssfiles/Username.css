@@ -1,0 +1,27 @@
+@import './layout.css';
+
+/* Username/Login page (username.jsx) */
+.username-page { min-height: 100vh; display: grid; place-items: center; padding: 32px 16px; }
+.username-content {
+  width: min(560px, 92vw);
+  background: rgba(255,255,255,0.75);
+  border: 1px solid var(--rose-200);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  padding: 28px 24px;
+  text-align: center;
+}
+.username-content h2 { margin: 0 0 14px; }
+.username-input {
+  width: 100%;
+  padding: 12px 14px;
+  margin: 8px 0;
+  border: 1px solid var(--rose-200);
+  border-radius: 12px;
+  background: var(--white);
+}
+.username-input:focus { outline: 0; border-color: var(--pink-400); box-shadow: 0 0 0 4px rgba(255, 158, 198, 0.25); }
+.username-btn { width: 100%; margin-top: 12px; padding: 12px 16px; border: 0; background: var(--pink-500); color: #fff; border-radius: 12px; font-weight: 700; box-shadow: var(--shadow); cursor: pointer; }
+.username-btn:hover { background: var(--pink-600); }
+.toggle-mode { margin-top: 10px; color: var(--text-700); cursor: pointer; }
+.toggle-mode:hover { color: var(--pink-600); text-decoration: underline; }

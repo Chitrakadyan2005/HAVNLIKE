@@ -1,0 +1,123 @@
+{
+  "app": {
+    "title": "Girls Got Feelings 💗",
+    "tagline": "A quiet corner for your loudest thoughts 💭 because your feelings deserve a home too 💖",
+    "join": "Wanna Join??"
+  },
+
+  "username": {
+    "headingNew": "What do you want us to call you? 💕",
+    "headingReturning": "Welcome back! 💖",
+    "inputName": "Enter your sweet name...",
+    "createSecret": "Create a secret phrase (min 6 chars)...",
+    "enterSecret": "Enter your secret phrase(min 5 characters)...",
+    "continue": "Continue",
+    "login": "Login",
+    "toggleToLogin": "Already have an account? Login",
+    "toggleToRegister": "New user? Create account"
+  },
+
+  "home": {
+    "navbar": "Girls Got Feelings 💖",
+    "greeting": "✨ Welcome cutie 🌸 we’re so glad you’re here 💕 explore around, have fun ✨ and don’t be shy, this place is all about good vibes 💌😉",
+    "reachOut": "Wanna reach out?",
+    "tabs": {
+      "home": "My Bubble",
+      "search": "Peek",
+      "room": "Spill Room",
+      "dm": "Whispers",
+      "notification": "Pings",
+      "settings": "Control",
+      "profile": "Me Time"
+    },
+
+    "post": {
+      "writeComment": "Write a comment...",
+      "replies": "Replies",
+      "reply": "Reply",
+      "addFeeling": "+ Add a New Feeling",
+      "placeholder": "What's on your mind?"
+    }
+},
+
+  "chatPage": {
+    "title": "Whispers 💌",
+    "typeMessage": "Type something sweet...",
+    "send": "Send",
+    "emptyState": "No messages yet... start a whisper 💬",
+    "back": "Back to Messages"
+  },
+
+  "searchPage": {
+    "title": "Peek into Feels 👀",
+    "searchPlaceholder": "Search by name or feeling...",
+    "noResults": "No matching souls found 😔",
+    "loading": "Uncovering feelings..."
+  },
+
+  "dm": {
+    "heading": "Whispers 💬",
+    "noMessages": "No messages yet",
+    "now": "Now"
+  },
+
+  "posts": {
+    "nairobi": "Let the matriarchy begin! 👑💥",
+    "tokyo": "Just burned the system down 🔥👠"
+  },
+  
+  "profile": {
+    "posts": "Posts",
+    "followers": "Followers",
+    "following": "Following",
+    "myPosts": "My Posts"
+  },
+
+  "publicChat": {
+      "placeholder": "Type a message...",
+      "send": "Send"
+    },
+
+    "room": {
+      "enter": "Enter",
+      "joinPrompt": "How would you like to join?",
+      "textChat": "Text Chat",
+      "streamRoom": "Stream Room",
+      "close": "Close"
+    },
+
+    "settings": {
+      "title": "Settings ⚙️",
+      "profile": "Profile Settings",
+      "profileDesc": "Change your username, display name or bio",
+      "privacy": "Privacy",
+      "privacyDesc": "Manage who can view your profile",
+      "currently": "Currently:",
+      "private": "Private 🔒",
+      "public": "Public 🌍",
+      "language": "Language",
+      "languageDesc": "Select your preferred language",
+      "notifications": "Notifications",
+      "notificationsDesc": "Control your alert preferences",
+      "manage": "Manage",
+      "theme": "Theme",
+      "themeDesc": "Light or dark mode",
+      "switch": "Switch",
+      "account": "Account",
+      "accountDesc": "Delete or deactivate your account",
+      "delete": "Delete",
+      "logout": "Logout",
+      "logoutDesc": "End your current session"
+    },
+
+    "stream": {
+      "spotify": "Spotify",
+      "camera": "Camera",
+      "micOn": "Mic On",
+      "micOff": "Mic Off",
+      "karaoke": "Karaoke",
+      "games": "Games",
+      "share": "Share Screen"
+    }
+
+}

@@ -1,0 +1,170 @@
+/* Feed Section - Room Page Specific */
+.RoomPage .feed {
+  padding: 20px;
+  display: grid;
+  gap: 20px;
+}
+
+/* Room tabs */
+.room-tab {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--rose-200);
+  border-radius: var(--radius-lg);
+  padding: 14px 18px;
+  font-weight: 600;
+  color: var(--text-800);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.room-tab:hover {
+  background: var(--pink-50);
+  border-color: var(--pink-300);
+}
+
+/* Popup inside room tab */
+.popup-box-inline {
+  margin-top: 10px;
+  background: #fff;
+  border: 1px solid var(--rose-200);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.popup-box-inline h3 {
+  margin: 0;
+  color: var(--pink-600);
+  font-size: 16px;
+}
+
+.popup-box-inline p {
+  margin: 6px 0 12px;
+  font-size: 14px;
+  color: var(--text-600);
+}
+
+.popup-options {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.popup-options button {
+  flex: 1;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--pink-500);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.popup-options button:hover {
+  background: var(--pink-600);
+}
+
+.popup-close {
+  background: transparent;
+  border: 0;
+  color: var(--text-500);
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Suggestions List */
+.suggestions-list {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--rose-200);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.suggestions-list h3 {
+  margin: 0 0 10px;
+  color: var(--pink-600);
+}
+
+.suggestion-item {
+  background: var(--pink-50);
+  border: 1px solid var(--rose-100);
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.suggestion-item p {
+  margin: 0 0 6px;
+}
+
+.votes {
+  display: flex;
+  gap: 8px;
+}
+
+.votes button {
+  flex: 1;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #fff;
+  border: 1px solid var(--rose-200);
+  transition: all 0.2s;
+}
+
+.votes button:hover {
+  background: var(--pink-100);
+}
+
+/* Suggestion box */
+.suggestion-box {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--rose-200);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.suggestion-box h3 {
+  margin: 0 0 10px;
+  color: var(--pink-600);
+}
+
+.suggestion-input {
+  width: 100%;
+  min-height: 80px;
+  border: 1px solid var(--rose-200);
+  border-radius: 8px;
+  padding: 10px;
+  resize: vertical;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.suggestion-submit {
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--pink-500);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.suggestion-submit:hover {
+  background: var(--pink-600);
+}
+
+/* Small animation for inline popup */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}

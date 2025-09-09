@@ -1,0 +1,62 @@
+@import './layout.css';
+
+/* Public text chat */
+.chat-page { display: grid; grid-template-rows: auto 1fr auto; height: calc(100vh - var(--nav-h) - 40px); background: rgba(255,255,255,0.8); border: 1px solid var(--rose-200); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow); }
+.chat-navbar { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid var(--rose-200); background: #fff; }
+.back-btn { 
+  background: var(--pink-500); 
+  color: #fff; 
+  border: 0; 
+  border-radius: 10px; 
+  padding: 10px 14px; 
+  cursor: pointer; 
+  box-shadow: var(--shadow); 
+  text-decoration: none; 
+  font-weight: 700; 
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-body { padding: 12px; overflow-y: auto; display: grid; gap: 8px; background: var(--pink-75); }
+.chat-bubble { max-width: 72%; padding: 10px 12px; border-radius: 14px; box-shadow: var(--shadow); }
+.chat-bubble.sent { margin-left: auto; background: linear-gradient(135deg, var(--pink-300), var(--pink-500)); color: #fff; border-top-right-radius: 4px; }
+.chat-bubble.received { margin-right: auto; background: #fff; border: 1px solid var(--rose-200); border-top-left-radius: 4px; }
+.sender { display: block; font-size: 12px; color: var(--text-500); margin-bottom: 3px; }
+
+.chat-input { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; padding: 10px; border-top: 1px solid var(--rose-200); background: #fff; }
+.chat-input input { border: 1px solid var(--rose-200); border-radius: 10px; padding: 10px 12px; outline: none; }
+.send-button { 
+  background: var(--pink-500); 
+  color: #fff; 
+  border: 0; 
+  border-radius: 10px; 
+  padding: 10px 14px; 
+  cursor: pointer; 
+  box-shadow: var(--shadow); 
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.send-button:hover {
+  background: var(--pink-600);
+}
+
+.emoji-btn { 
+  background: linear-gradient(135deg, var(--pink-300), var(--pink-500)); 
+  color: #fff; 
+  border: 0; 
+  border-radius: 8px; 
+  padding: 6px 8px; 
+  cursor: pointer; 
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.emoji-btn:hover {
+  background: linear-gradient(135deg, var(--pink-400), var(--pink-600));
+}
+
+.emoji-popup { position: absolute; bottom: 60px; left: 12px; background: #fff; border: 1px solid var(--rose-200); border-radius: 12px; padding: 8px; box-shadow: var(--shadow); }
