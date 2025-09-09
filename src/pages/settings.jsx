@@ -1,6 +1,6 @@
 import React, {useState, useRef, useEffect} from 'react';
 import { Link } from 'react-router-dom';
-import '../cssfiles/Settings.css';
+import '../cssfiles/settings.css';
 import '../cssfiles/layout.css';
 import i18n from 'i18next';
 import { useTranslation } from 'react-i18next';
