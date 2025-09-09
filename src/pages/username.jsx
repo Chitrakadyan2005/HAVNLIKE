@@ -3,6 +3,7 @@ import '../cssfiles/Username.css';
 import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import API_URL from '../utils/api';
 
 function Username() {
   const navigate = useNavigate();
@@ -39,7 +40,7 @@ function Username() {
       const endpoint = isReturningUser ? '/api/auth/login' : '/api/auth/register';
       const body = { username, secret_phrase: secretPhrase };
 
-      const response = await fetch(`http://localhost:5000${endpoint}`, {
+      const response = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
