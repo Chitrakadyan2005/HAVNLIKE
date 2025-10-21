@@ -6,24 +6,21 @@ import EmojiPicker from "emoji-picker-react";
 import { useTranslation } from 'react-i18next';
 import API_URL from '../utils/api';
 
-
 function Home() {
   const [posts, setPosts] = useState([]);
   const { t } = useTranslation();
 
   const username = sessionStorage.getItem('username');
   const token = sessionStorage.getItem("token");
-  
-  console.log('🏠 Home page loaded for user:', username);
-
 
   const [showComments, setShowComments] = useState({});
   const [showPostBox, setShowPostBox] = useState(false);
   const [newPostText, setNewPostText] = useState('');
   const [commentTexts, setCommentTexts] = useState({});
-  const [emojiPickers, setEmojiPickers] = useState({}); // separate emoji state per target
+  const [emojiPickers, setEmojiPickers] = useState({});
 
   const modalRef = useRef();
+  const buttonRef = useRef();
 
   // ================= FETCH POSTS =================
   useEffect(() => {
@@ -68,14 +65,36 @@ function Home() {
   // ================= CLICK OUTSIDE =================
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (modalRef.current && !modalRef.current.contains(e.target)) {
+      if (
+        showPostBox &&
+        modalRef.current &&
+        !modalRef.current.contains(e.target) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(e.target)
+      ) {
         setShowPostBox(false);
+      }
+
+      const emojiContainers = document.querySelectorAll('.emoji-popup, .emoji-picker-container');
+      let clickedOutsideEmoji = true;
+      
+      emojiContainers.forEach(container => {
+        if (container.contains(e.target)) clickedOutsideEmoji = false;
+      });
+
+      const emojiButtons = document.querySelectorAll('.emoji-btn, .bi-emoji-smile');
+      emojiButtons.forEach(button => {
+        if (button.contains(e.target)) clickedOutsideEmoji = false;
+      });
+
+      if (clickedOutsideEmoji && Object.keys(emojiPickers).some(key => emojiPickers[key])) {
         setEmojiPickers({});
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showPostBox, emojiPickers]);
 
   // ================= LIKE POST =================
   const handleLike = async (postId) => {
@@ -95,17 +114,16 @@ function Home() {
       const { liked, likecount } = await res.json();
 
       setPosts(prev =>
-  prev.map(post =>
-    post.id === postId
-      ? { 
-          ...post, 
-          likedByUser: liked === true, // ensure boolean
-          likesCount: Number(likecount || 0)
-        }
-      : post
-  )
-);
-
+        prev.map(post =>
+          post.id === postId
+            ? { 
+                ...post, 
+                likedByUser: liked === true,
+                likesCount: Number(likecount || 0)
+              }
+            : post
+        )
+      );
     } catch (err) {
       console.error(err.message);
     }
@@ -133,17 +151,16 @@ function Home() {
 
       const newPost = await res.json();
       const formattedNewPost = {
-  text: newPost.content,
-  user: newPost.username,
-  avatar_url: newPost.avatar_url || '/default-avatar.png',
-  time: new Date(newPost.created_at).toLocaleString(),
-  likesCount: Number(newPost.likecount || 0),
-  comments: newPost.comments || [],
-  commentCount: newPost.commentcount || 0,
-  likedByUser: newPost.likedByUser === true
-};
-
-
+        id: newPost.id,
+        text: newPost.content,
+        user: newPost.username,
+        avatar_url: newPost.avatar_url || '/default-avatar.png',
+        time: new Date(newPost.created_at).toLocaleString(),
+        likesCount: Number(newPost.likecount || 0),
+        comments: newPost.comments || [],
+        commentCount: newPost.commentcount || 0,
+        likedByUser: newPost.likedByUser === true
+      };
 
       setPosts(prev => [formattedNewPost, ...prev]);
       setNewPostText('');
@@ -186,12 +203,13 @@ function Home() {
       );
 
       setCommentTexts(prev => ({ ...prev, [postId]: '' }));
+      setEmojiPickers(prev => ({ ...prev, [postId]: false }));
     } catch (err) {
       console.error(err.message);
     }
   };
 
-  // ================= EMOJI PICKER =================
+  // ================= EMOJI =================
   const onEmojiClick = (emojiData, target) => {
     if (target === 'post') {
       setNewPostText(prev => prev + emojiData.emoji);
@@ -201,13 +219,19 @@ function Home() {
         [target]: (prev[target] || '') + emojiData.emoji
       }));
     }
+    setEmojiPickers(prev => ({ ...prev, [target]: false }));
   };
 
   const toggleEmoji = (target) => {
-    setEmojiPickers(prev => ({
-      ...prev,
-      [target]: !prev[target]
-    }));
+    setEmojiPickers(prev => {
+      const newState = {};
+      Object.keys(prev).forEach(key => (newState[key] = false));
+      return { ...newState, [target]: !prev[target] };
+    });
+  };
+
+  const closeEmoji = (target) => {
+    setEmojiPickers(prev => ({ ...prev, [target]: false }));
   };
 
   // ================= TOGGLE COMMENTS =================
@@ -227,6 +251,7 @@ function Home() {
 
       <div className='main-content'>
         <aside className='left-panel'>
+          {/* Sidebar */}
           <ul className='leftpanel-animated'>
             <Link to="/home"><li style={{ '--i': '#a955ff', '--j': '#ea51ff' }}><div className="icon"><i className="bi bi-house"></i></div><span className="title">{t('home.tabs.home')}</span></li></Link>
             <Link to="/search"><li style={{ '--i': '#56CCF2', '--j': '#2F80ED' }}><div className="icon"><i className="bi bi-search"></i></div><span className="title">{t('home.tabs.search')}</span></li></Link>
@@ -240,76 +265,109 @@ function Home() {
 
         <section className='feed'>
           <div className='feed-container'>
-          {posts.map(post => (
-            <div className='post' key={post.id}>
-              <div className='post-header'>
-                <h3>
-                  <Link to={`/profile/${post.user}`} className="username-link">
-                    <img src={post.avatar_url} alt={`${post.user}'s avatar`} className="post-avatar" />
-                    {post.user}
-                  </Link>
-                </h3>
-                <span className='post-time'>{post.time}</span>
-              </div>
+            {posts.map(post => (
+              <div className='post' key={post.id}>
+                <div className='post-header'>
+                  <h3>
+                    <Link to={`/profile/${post.user}`} className="username-link">
+                      <img src={post.avatar_url} alt={post.user} className="post-avatar" />
+                      {post.user}
+                    </Link>
+                  </h3>
+                  <span className='post-time'>{post.time}</span>
+                </div>
 
-              <div className='post-body'><p>{post.text}</p></div>
+                <div className='post-body'><p>{post.text}</p></div>
 
-              <div className="post-actions">
-                <i className={`bi ${post.likedByUser ? 'bi-heart-fill liked' : 'bi-heart'}`} onClick={() => handleLike(post.id)}></i>
-                <span className="likes-count">{post.likesCount}</span>
-                <i className="bi bi-chat-dots" onClick={() => toggleComment(post.id)}></i>
-                <span className="comment-count">{post.commentCount}</span>
-                <i className="bi bi-share"></i>
-              </div>
+                <div className="post-actions">
+                  <i className={`bi ${post.likedByUser ? 'bi-heart-fill liked' : 'bi-heart'}`} onClick={() => handleLike(post.id)}></i>
+                  <span>{post.likesCount}</span>
+                  <i className="bi bi-chat-dots" onClick={() => toggleComment(post.id)}></i>
+                  <span>{post.commentCount}</span>
+                </div>
 
-              {showComments[post.id] && (
-                <div className="comment-section">
-                  <div className="comment-box">
-                    <button className="emoji-btn" onClick={() => toggleEmoji(post.id)}>😊</button>
-                    {emojiPickers[post.id] && (
-                      <div className="emoji-popup">
-                        <EmojiPicker onEmojiClick={(emoji) => onEmojiClick(emoji, post.id)} />
+                {showComments[post.id] && (
+                  <div className="comment-section">
+                    <div className="comment-box">
+                      <button className="emoji-btn" onClick={() => toggleEmoji(post.id)}>😊</button>
+                      {emojiPickers[post.id] && (
+                        <div className="emoji-popup">
+                          <div className="emoji-popup-header">
+                            <span>Choose Emoji</span>
+                            <button className="close-emoji-btn" onClick={() => closeEmoji(post.id)}>✖</button>
+                          </div>
+                          <EmojiPicker 
+                            onEmojiClick={(emojiData) => onEmojiClick(emojiData, post.id)}
+                            width="100%"
+                            height="280px"
+                          />
+                        </div>
+                      )}
+                      <input
+                        type="text"
+                        placeholder={t('home.post.writeComment')}
+                        value={commentTexts[post.id] || ''}
+                        onChange={(e) => setCommentTexts({ ...commentTexts, [post.id]: e.target.value })}
+                        onKeyPress={(e) => e.key === 'Enter' && handleAddComment(post.id)}
+                      />
+                      <i className="bi bi-send send-icon" onClick={() => handleAddComment(post.id)}></i>
+                    </div>
+
+                    {post.comments.length > 0 && (
+                      <div className="comment-replies">
+                        {post.comments.map((comment, idx) => (
+                          <div className="single-comment" key={idx}>
+                            ↳ <strong>{comment.user}</strong>: {comment.text}
+                          </div>
+                        ))}
                       </div>
                     )}
-                    <input type="text" placeholder={t('home.post.writeComment')} value={commentTexts[post.id] || ''} onChange={(e) => setCommentTexts({ ...commentTexts, [post.id]: e.target.value })}/>
-                    <i className="bi bi-send send-icon" onClick={() => handleAddComment(post.id)}></i>
                   </div>
+                )}
+              </div>
+            ))}
 
-                  {post.comments.length > 0 && (
-                    <div className="comment-replies">
-                      {post.comments.map((comment, idx) => (
-                        <div className="single-comment" key={idx}>
-                          ↳ <strong>{comment.user}</strong>: {comment.text}
-                        </div>
-                      ))}
+            {/* Add Post Modal */}
+            {showPostBox && (
+              <div className="popup-overlay">
+                <div className="popup-post-box" ref={modalRef}>
+                  <div className="post-input">
+                    <i className="bi bi-emoji-smile" onClick={() => toggleEmoji('post')}></i>
+                    <input
+                      type="text"
+                      placeholder={t('home.post.placeholder')}
+                      value={newPostText}
+                      onChange={(e) => setNewPostText(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleAddPost()}
+                    />
+                    <i className="bi bi-send-fill" onClick={handleAddPost}></i>
+                  </div>
+                  {emojiPickers['post'] && (
+                    <div className="emoji-picker-container">
+                      <div className="emoji-picker-header">
+                        <span>Choose Emoji</span>
+                        <button className="close-emoji-btn" onClick={() => closeEmoji('post')}>✖</button>
+                      </div>
+                      <EmojiPicker 
+                        onEmojiClick={(emojiData) => onEmojiClick(emojiData, 'post')}
+                        width="100%"
+                        height="280px"
+                      />
                     </div>
                   )}
                 </div>
-              )}
-            </div>
-          ))}
-
-          {showPostBox && (
-            <div className="popup-post-box" ref={modalRef}>
-              <div className="post-input">
-                <i className="bi bi-emoji-smile" onClick={() => toggleEmoji('post')}></i>
-                <input type="text" placeholder={t('home.post.placeholder')} value={newPostText} onChange={(e) => setNewPostText(e.target.value)} />
-                <i className="bi bi-send-fill" onClick={handleAddPost}></i>
               </div>
-              {emojiPickers['post'] && (
-                <div className="emoji-picker-container">
-                  <span className="close-emoji" onClick={() => toggleEmoji('post')}>✖</span>
-                  <EmojiPicker onEmojiClick={(emoji) => onEmojiClick(emoji, 'post')} />
-                </div>
-              )}
-            </div>
-          )}
+            )}
 
-          <div className="add-post-bottom">
-            <button className="add-post-btn" onClick={() => { setShowPostBox(true); toggleEmoji('post'); }}>
-              {t('home.post.addFeeling')}
-            </button>
-          </div>
+            <div className="add-post-bottom">
+              <button
+                ref={buttonRef}
+                className="add-post-btn"
+                onClick={() => setShowPostBox(true)}
+              >
+                {t('home.post.addFeeling')}
+              </button>
+            </div>
           </div>
         </section>
 

@@ -10,6 +10,7 @@ function Username() {
   const [username, setUsername] = useState('');
   const [isReturningUser, setIsReturningUser] = useState(false);
   const [secretPhrase, setSecretPhrase] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const { t } = useTranslation();
 
   const handleUsername = async () => {
@@ -77,7 +78,7 @@ function Username() {
         const { refreshSocketAuth } = await import('../socket');
         refreshSocketAuth();
       } catch {}
-      navigate('/home');
+      navigate(`/profile/${username}`);
 
     } catch (err) {
       Swal.fire({
@@ -111,25 +112,45 @@ function Username() {
         />
 
         {!isReturningUser && (
-          <input
-            type="text"
-            placeholder={t('username.createSecret')}
-            value={secretPhrase}
-            onChange={(e) => setSecretPhrase(e.target.value)}
-            className="username-input"
-            minLength={6}
-          />
+          <div className="password-input-container">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              placeholder={t('username.createSecret')}
+              value={secretPhrase}
+              onChange={(e) => setSecretPhrase(e.target.value)}
+              className="username-input"
+              minLength={6}
+            />
+            <button
+              type="button"
+              className="password-toggle-btn"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? '🙈' : '👁️'}
+            </button>
+          </div>
         )}
 
         {isReturningUser && (
-          <input
-            type="text"
-            placeholder={t('username.enterSecret')}
-            value={secretPhrase}
-            onChange={(e) => setSecretPhrase(e.target.value)}
-            className="username-input"
-            minLength={5}
-          />
+          <div className="password-input-container">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              placeholder={t('username.enterSecret')}
+              value={secretPhrase}
+              onChange={(e) => setSecretPhrase(e.target.value)}
+              className="username-input"
+              minLength={5}
+            />
+            <button
+              type="button"
+              className="password-toggle-btn"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? '🙈' : '👁️'}
+            </button>
+          </div>
         )}
 
         <button className="username-btn" onClick={handleUsername}>

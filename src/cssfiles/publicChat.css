@@ -18,13 +18,21 @@
   justify-content: center;
 }
 
-.chat-body { padding: 12px; overflow-y: auto; display: grid; gap: 8px; background: var(--pink-75); }
+.chat-body { padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; background: var(--pink-75); }
 .chat-bubble { max-width: 72%; padding: 10px 12px; border-radius: 14px; box-shadow: var(--shadow); }
 .chat-bubble.sent { margin-left: auto; background: linear-gradient(135deg, var(--pink-300), var(--pink-500)); color: #fff; border-top-right-radius: 4px; }
 .chat-bubble.received { margin-right: auto; background: #fff; border: 1px solid var(--rose-200); border-top-left-radius: 4px; }
 .sender { display: block; font-size: 12px; color: var(--text-500); margin-bottom: 3px; }
 
-.chat-input { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; padding: 10px; border-top: 1px solid var(--rose-200); background: #fff; }
+.chat-input {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  padding: 10px;
+  border-top: 1px solid var(--rose-200);
+  background: #fff;
+  position: relative; /* ✅ anchor for popup */
+}
 .chat-input input { border: 1px solid var(--rose-200); border-radius: 10px; padding: 10px 12px; outline: none; }
 .send-button { 
   background: var(--pink-500); 
@@ -59,4 +67,18 @@
   background: linear-gradient(135deg, var(--pink-400), var(--pink-600));
 }
 
-.emoji-popup { position: absolute; bottom: 60px; left: 12px; background: #fff; border: 1px solid var(--rose-200); border-radius: 12px; padding: 8px; box-shadow: var(--shadow); }
+.emoji-popup {
+  position: absolute;
+  bottom: 100%;        /* input ke bilkul upar */
+  left: 0;
+  right: 0;            /* ✅ full stretch feed ke across */
+  margin-bottom: 8px;
+  background: #fff;
+  border: 1px solid var(--rose-200);
+  border-radius: 0;    /* ✅ edge-to-edge look (toolbar jaisa) */
+  padding: 8px;
+  box-shadow: var(--shadow);
+  z-index: 1000;
+  max-height: 250px;   /* overflow control */
+  overflow-y: auto;
+}

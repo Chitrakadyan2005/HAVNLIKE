@@ -54,7 +54,8 @@ const StreamRoom = () => {
     'Swipe Stories 📱': '/images/datingapp.jpg',
     'Hustle & Heart 💼': '/images/hustle.jpg',
     '2025 Fashion Files 👗': '/images/fashion.jpg',
-    'Glow Up Goals 🌟': '/images/skincare.png'
+    'Glow Up Goals 🌟': '/images/skincare.png',
+    'Bookie Girlies 📚': '/images/books.jpg'
   };
 
   const backgroundImage = wallpaperMap[roomName] || '/images/default.jpg';
@@ -70,6 +71,7 @@ const StreamRoom = () => {
     'Hustle & Heart 💼': "https://open.spotify.com/embed/playlist/1uhwIo3Xc8bszXl7ulZ6fd?utm_source=generator",
     '2025 Fashion Files 👗': "https://open.spotify.com/embed/playlist/7v09AcZPiOEeIn6GPl7VtM?utm_source=generator",
     'Glow Up Goals 🌟': "https://open.spotify.com/embed/playlist/3mtfMqKTKXFo0UOpC0krnX?utm_source=generator",
+    'Bookie Girlies 📚': "https://open.spotify.com/embed/playlist/3oVnGCC4pFnu86XSvuvazn?utm_source=generator",
     Default: "https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M"
   };
 
@@ -115,6 +117,10 @@ const StreamRoom = () => {
       { name: "Higher or Lower", url: "https://cdn.htmlgames.com/HigherOrLower/" },
       { name: "Black and White Dimensions", url: "https://cdn.htmlgames.com/BlackAndWhiteDimensions/" }
     ],
+    'Bookie Girlies 📚': [
+      { name: "Love Bubble", url: "https://cdn.htmlgames.com/LoveBubbles/" },
+      { name: "Black and White Dimensions", url: "https://cdn.htmlgames.com/BlackAndWhiteDimensions/" }
+    ],
     Default: [
       { name: "Frogtastic", url: "https://games.cdn.famobi.com/html5games/f/frogtastic/v270/?fg_domain=play.famobi.com" },
       { name: "Escape Room", url: "https://cdn.htmlgames.com/EscapeRoom-HomeEscape/" }
@@ -136,7 +142,14 @@ const StreamRoom = () => {
 
     socket.on('user-joined', ({ userId, username: joinedUsername }) => {
       console.log(`User ${joinedUsername} joined the room`);
-      const pc = createPeerConnection(userId, localStreams.current, socket, setRemoteStreams);
+      // Existing members initiate the offer to the newcomer to avoid glare
+      const pc = createPeerConnection(
+        userId,
+        localStreams.current,
+        socket,
+        setRemoteStreams,
+        { initiateOffer: true }
+      );
       peers.current[userId] = pc;
       setParticipants(prev => Array.from(new Set([...prev, userId])));
       setParticipantMap(prev => ({ ...prev, [userId]: joinedUsername || 'User' }));
@@ -146,7 +159,14 @@ const StreamRoom = () => {
       if (peers.current[from]) {
         peers.current[from].signal(signal);
       } else {
-        peers.current[from] = createPeerConnection(from, localStreams.current, socket, setRemoteStreams, signal);
+        // Newcomer receives an offer first, so do not initiate offer here, just pass initial signal
+        peers.current[from] = createPeerConnection(
+          from,
+          localStreams.current,
+          socket,
+          setRemoteStreams,
+          { initialSignal: signal, initiateOffer: false }
+        );
       }
     });
 
@@ -183,9 +203,16 @@ const StreamRoom = () => {
         return map;
       });
       setCurrentHostId(hostId || null);
+      // Newcomer: do not initiate offers; wait for existing peers to call us
       existingPeers.forEach(peerId => {
         if (peerId !== socket.id && !peers.current[peerId]) {
-          const pc = createPeerConnection(peerId, localStreams.current, socket, setRemoteStreams);
+          const pc = createPeerConnection(
+            peerId,
+            localStreams.current,
+            socket,
+            setRemoteStreams,
+            { initiateOffer: false }
+          );
           peers.current[peerId] = pc;
         }
       });
@@ -306,6 +333,8 @@ const StreamRoom = () => {
     });
   }, [remoteStreams]);
 
+
+
   const toggleCamera = async () => {
     try {
       if (cameraOn) {
@@ -318,32 +347,65 @@ const StreamRoom = () => {
         setCameraOn(false);
         if (activeTab === 'camera') setActiveTab(null);
 
+        // Clear the video element's srcObject to prevent black screen
+        if (cameraVideoRef.current) {
+          cameraVideoRef.current.srcObject = null;
+        }
+
+        // Remove camera tracks from all existing peer connections
+        Object.entries(peers.current).forEach(([peerId, pc]) => {
+          console.log(`Removing camera tracks from peer ${peerId}`);
+          pc.getSenders()
+            .filter(sender => sender.track && sender.track.kind === 'video')
+            .forEach(sender => {
+              try {
+                pc.removeTrack(sender);
+              } catch (e) {
+                console.warn('removeTrack failed for video:', e);
+              }
+            });
+
+          // Create new offer after removing tracks
+          pc.createOffer()
+            .then(offer => pc.setLocalDescription(offer))
+            .then(() => {
+              socket.emit('signal', {
+                to: peerId,
+                signal: {
+                  type: 'offer',
+                  offer: pc.localDescription
+                }
+              });
+            })
+            .catch(err => console.error('Error creating offer after removing camera tracks:', err));
+        });
+
         // Notify others about camera state change
-        socket.emit('media-state', { 
-          roomId: roomCode, 
-          cameraOn: false, 
-          micOn 
+        socket.emit('media-state', {
+          roomId: roomCode,
+          cameraOn: false,
+          micOn
         });
       } else {
         // Turn on camera
         // If mic is on, capture audio; otherwise, capture video-only
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-          video: true, 
-          audio: true 
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true
         });
         // Respect current mic state by enabling/disabling track
         const audioTrack = stream.getAudioTracks()[0];
         if (audioTrack) audioTrack.enabled = micOn;
-        
+
         localStreams.current.camera = stream;
         setCameraStream(stream);
         setCameraOn(true);
 
         // Notify others about camera state change
-        socket.emit('media-state', { 
-          roomId: roomCode, 
-          cameraOn: true, 
-          micOn 
+        socket.emit('media-state', {
+          roomId: roomCode,
+          cameraOn: true,
+          micOn
         });
 
         // Add tracks to all existing peer connections
@@ -353,7 +415,7 @@ const StreamRoom = () => {
             console.log(`Adding ${track.kind} track to peer ${peerId}`);
             pc.addTrack(track, stream);
           });
-          
+
           // Create new offer since we added tracks
           pc.createOffer()
             .then(offer => pc.setLocalDescription(offer))

@@ -1,5 +1,6 @@
 // src/webrtc.js
-export function createPeerConnection(peerId, localStreams, socket, setRemoteStreams, initialSignal = null) {
+export function createPeerConnection(peerId, localStreams, socket, setRemoteStreams, options = {}) {
+  const { initiateOffer = false, initialSignal = null } = options;
   const pc = new RTCPeerConnection({
     iceServers: [
       { urls: "stun:stun.l.google.com:19302" },
@@ -77,12 +78,10 @@ export function createPeerConnection(peerId, localStreams, socket, setRemoteStre
     }
   };
 
-  // Create offer for new connections
-  if (!initialSignal) {
+  // Create offer for new connections only when explicitly initiating
+  if (initiateOffer && !initialSignal) {
     pc.createOffer()
-      .then(offer => {
-        return pc.setLocalDescription(offer);
-      })
+      .then(offer => pc.setLocalDescription(offer))
       .then(() => {
         socket.emit('signal', {
           to: peerId,

@@ -52,9 +52,10 @@ function ChatPage() {
     // Join apne naam ka DM room
     socket.emit("join-dm", currentUser);
 
-    // Jab koi message mile
+    // Jab koi message mile (normalize payload to { from, message })
     socket.on("receive-dm", (msg) => {
-      setMessages((prev) => [...prev, msg]);
+      const normalized = msg?.text ? { from: msg.from, message: msg.text } : msg;
+      setMessages((prev) => [...prev, normalized]);
     });
 
     return () => {
@@ -124,13 +125,18 @@ useEffect(() => {
   if (!message.trim()) return;
 
   const newMessage = {
-    receiverId: userId,   // id bhejna hai
+    receiverId: userId,
     message
   };
 
+  // Optimistically render on sender side
+  setMessages((prev) => [...prev, { from: currentUser, message }]);
+
+  // Emit so receiver sees instantly
   socket.emit("send-dm", newMessage);
   setMessage("");
 
+  // Persist, but don't replace the local message list (avoid flicker/overwrite)
   fetch(`${API_URL}/api/dm/chat/send`, {
     method: 'POST',
     headers: { 
@@ -139,15 +145,7 @@ useEffect(() => {
     },
     body: JSON.stringify(newMessage)
   })
-    .then(res => res.json())
-    .then(data => {
-  const formatted = data.map(m => ({
-    from: m.sender_id,
-    message: m.message
-  }));
-  setMessages(formatted);
-})
-
+    .then(() => {})
     .catch(err => console.error("Failed to send message:", err));
 };
 

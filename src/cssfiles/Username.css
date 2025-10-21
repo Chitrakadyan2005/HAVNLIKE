@@ -25,3 +25,26 @@
 .username-btn:hover { background: var(--pink-600); }
 .toggle-mode { margin-top: 10px; color: var(--text-700); cursor: pointer; }
 .toggle-mode:hover { color: var(--pink-600); text-decoration: underline; }
+
+.password-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  user-select: none;
+  padding: 0;
+  line-height: 1;
+  color: var(--text-700);
+}
+
+.password-toggle-btn:hover {
+  color: var(--pink-600);
+}

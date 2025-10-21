@@ -2,7 +2,7 @@
 import { io } from "socket.io-client";
 
 // Tumhare backend ka URL (local ya deployed)
-const SOCKET_URL = "https://girlsgotfeelings-backend.vercel.app"; 
+const SOCKET_URL = "https://girlsgotfeelings-backend.onrender.com/"; 
 
 // Build auth payload per tab (session-only to prevent cross-tab identity mixup)
 const getAuth = () => ({

@@ -24,21 +24,110 @@
 
 /* Comments */
 .comment-section { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--rose-200); }
-.comment-box { display: flex; align-items: center; gap: 8px; background: var(--white); border: 1px solid var(--rose-200); border-radius: 12px; padding: 8px 10px; }
+.comment-box { 
+  display: flex; 
+  align-items: center; 
+  gap: 8px; 
+  background: var(--white); 
+  border: 1px solid var(--rose-200); 
+  border-radius: 12px; 
+  padding: 8px 10px; 
+  position: relative; /* ✅ anchor emoji popup */
+}
 .comment-box input { flex: 1; border: 0; outline: none; }
 .emoji-btn { background: linear-gradient(135deg, var(--pink-300), var(--pink-500)); color: #fff; border: 0; border-radius: 8px; padding: 6px 8px; cursor: pointer; }
-.emoji-popup { position: absolute; z-index: 10; }
-.send-icon { color: var(--pink-600); }
+
+/* Emoji popup for comments */
+.emoji-popup,
+.emoji-picker-container {
+  position: absolute;
+  top: 110%;
+  left: 0;
+  background: #fff;
+  border: 1px solid var(--rose-200);
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  width: 320px;
+  height: 320px;              /* ✅ bigger height for picker */
+  display: flex;
+  flex-direction: column;
+  z-index: 9999;              /* ✅ stay above everything */
+  overflow: hidden;
+}
+/* Header bar (fixed at top) */
+.emoji-popup-header,
+.emoji-picker-header {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--rose-200);
+  background: var(--pink-50);
+}
+.emoji-popup-title,
+.emoji-picker-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-700);
+}
+.close-emoji-btn {
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  cursor: pointer;
+  color: var(--pink-600);
+  font-weight: bold;
+}
+.close-emoji-btn:hover { color: var(--pink-700); }
+.emoji-popup .EmojiPickerReact,
+.emoji-picker-container .EmojiPickerReact {
+  flex: 1;                   /* ✅ fill remaining space */
+  overflow-y: auto;          /* ✅ scroll inside */
+  padding: 6px;
+}
+.send-icon { color: var(--pink-600); cursor: pointer; }
 
 .comment-replies { margin-top: 10px; display: grid; gap: 8px; }
 .single-comment { background: var(--pink-50); border: 1px solid var(--rose-100); border-radius: 8px; padding: 8px; color: var(--text-700); }
 
 /* Add Post */
-.popup-post-box { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,0.1); }
-.post-input { position: relative; display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--rose-200); border-radius: 12px; padding: 10px 12px; width: min(640px, 90vw); box-shadow: var(--shadow); }
+/* Overlay */
+.popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+/* Post box itself (centered modal, not full page) */
+.popup-post-box {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  width: min(500px, 92vw);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  position: relative;
+  z-index: 1000;
+}
+
+/* Input inside post box */
+.post-input { 
+  position: relative; 
+  display: flex; 
+  align-items: center; 
+  gap: 8px; 
+  background: #fff; 
+  border: 1px solid var(--rose-200); 
+  border-radius: 12px; 
+  padding: 10px 12px; 
+  width: 100%; 
+  box-shadow: var(--shadow); 
+}
 .post-input input { flex: 1; border: 0; outline: none; }
-.emoji-picker-container { position: absolute; top: 110%; right: 0; background: #fff; border: 1px solid var(--rose-200); border-radius: 12px; padding: 8px; box-shadow: var(--shadow); }
-.close-emoji { position: absolute; top: -10px; right: -10px; background: var(--pink-500); color: #fff; border-radius: 50%; width: 24px; height: 24px; display: grid; place-items: center; }
 
 .add-post-bottom { position: sticky; bottom: 8px; display: grid; place-items: center; margin-top: 10px; }
 .add-post-btn { background: linear-gradient(135deg, var(--pink-300), var(--pink-500)); color: #fff; border: 0; padding: 12px 16px; border-radius: 999px; box-shadow: var(--shadow); cursor: pointer; font-weight: 700; }

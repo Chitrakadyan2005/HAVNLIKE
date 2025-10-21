@@ -188,7 +188,8 @@ const handleVote = async (id, type) => {
     'Swipe Stories 📱',
     'Hustle & Heart 💼',
     '2025 Fashion Files 👗',
-    'Glow Up Goals 🌟'
+    'Glow Up Goals 🌟',
+    'Bookie Girlies 📚'
   ];
 
     return(
