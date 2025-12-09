@@ -10,7 +10,7 @@
     "headingReturning": "Welcome back! 💖",
     "inputName": "Enter your sweet name...",
     "createSecret": "Create a secret phrase (min 6 chars)...",
-    "enterSecret": "Enter your secret phrase(min 5 characters)...",
+    "enterSecret": "Enter your secret phrase(min 6 characters)...",
     "continue": "Continue",
     "login": "Login",
     "toggleToLogin": "Already have an account? Login",
