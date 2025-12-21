@@ -16,40 +16,21 @@ function Settings() {
 
   const { t } = useTranslation();
 
-const handleDeleteAccount = async () => {
-  try {
-    const token = sessionStorage.getItem("token");
-    console.log("Token from sessionStorage:", token);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmAction, setConfirmAction] = useState('');
+  const [confirmMessage, setConfirmMessage] = useState('');
 
-    const response = await fetch(`${API_URL}/api/auth/delete`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      }
-    });
-
-    if (response.ok) {
-      alert('Account deleted successfully');
-      window.location.href = '/';
-    } else {
-      const data = await response.json();
-      alert(`Failed to delete account: ${data.error || data.message}`);
-    }
-  } catch (error) {
-    alert('Something went wrong!');
-    console.error(error);
-  }
+const handleDeleteAccount = () => {
+  setConfirmMessage("This will permanently delete your account. Are you sure?");
+  setConfirmAction('delete');
+  setShowConfirmModal(true);
 };
 
 
-  const handleLogout = async () => {
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem("username");
-
-    alert('Logged out successfully');
-
-    window.location.href = '/username';
+  const handleLogout = () => {
+    setConfirmMessage("Are you sure you want to log out?");
+    setConfirmAction('logout');
+    setShowConfirmModal(true);
   };
 
 
@@ -62,6 +43,42 @@ const handleDeleteAccount = async () => {
     document.addEventListener('mousedown',handleClickOutside);
     return () => document.removeEventListener('mousedown',handleClickOutside);
   },[]);
+
+  const handleConfirm = async () => {
+    if (confirmAction === 'logout') {
+      sessionStorage.removeItem("token");
+      sessionStorage.removeItem("username");
+      alert('Logged out successfully');
+      window.location.href = '/username';
+    } else if (confirmAction === 'delete') {
+      try {
+        const token = sessionStorage.getItem("token");
+        console.log("Token from sessionStorage:", token);
+        const response = await fetch(`${API_URL}/api/auth/delete`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          }
+        });
+        if (response.ok) {
+          alert('Account deleted successfully');
+          window.location.href = '/';
+        } else {
+          const data = await response.json();
+          alert(`Failed to delete account: ${data.error || data.message}`);
+        }
+      } catch (error) {
+        alert('Something went wrong!');
+        console.error(error);
+      }
+    }
+    setShowConfirmModal(false);
+  };
+
+  const handleCancel = () => {
+    setShowConfirmModal(false);
+  };
 
   const handleToggle = () => {
     setShowOptions(!showOptions);
@@ -269,6 +286,19 @@ const handleDeleteAccount = async () => {
                         </div>
                     </aside>
       </div>
+
+      {showConfirmModal && (
+        <div className="confirm-modal-overlay" onClick={handleCancel}>
+          <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <p>{confirmMessage}</p>
+            <div className="modal-buttons">
+              <button className="btn cancel" onClick={handleCancel}>Cancel</button>
+              <button className={`btn confirm ${confirmAction === 'delete' ? 'danger' : ''}`} onClick={handleConfirm}>{confirmAction === 'logout' ? 'Logout' : 'Delete'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

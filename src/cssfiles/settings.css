@@ -185,3 +185,63 @@
   background: var(--pink-50);
   border: 1px solid var(--pink-200);
 }
+
+/* Confirmation Modal */
+.confirm-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.confirm-modal {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+.confirm-modal p {
+  color: var(--pink-600);
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.modal-buttons .btn {
+  flex: 1;
+  max-width: 120px;
+  color: #fff;
+}
+
+.modal-buttons .btn.cancel {
+  background: linear-gradient(135deg, var(--pink-500), var(--pink-600));
+}
+
+
+
+.modal-buttons .btn.confirm {
+  background: linear-gradient(135deg, var(--pink-500), var(--pink-600));
+}
+
+
+
+.modal-buttons .btn.confirm.danger {
+  background: linear-gradient(135deg, var(--pink-500), var(--pink-600));
+}
+
+
