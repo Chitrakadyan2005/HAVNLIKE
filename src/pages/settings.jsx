@@ -49,7 +49,7 @@ const handleDeleteAccount = () => {
       sessionStorage.removeItem("token");
       sessionStorage.removeItem("username");
       alert('Logged out successfully');
-      window.location.href = '/username';
+      window.location.href = '/';
     } else if (confirmAction === 'delete') {
       try {
         const token = sessionStorage.getItem("token");
