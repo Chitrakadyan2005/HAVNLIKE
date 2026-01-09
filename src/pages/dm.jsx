@@ -80,7 +80,7 @@ function Dm(){
         />
 
         <nav className='Navbar'>
-            Girls Got Feelings 💖
+            {t('home.navbar')}
         </nav>
         <div className='main-content'>
             <aside className='left-panel'>
