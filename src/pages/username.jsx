@@ -11,7 +11,87 @@ function Username() {
   const [isReturningUser, setIsReturningUser] = useState(false);
   const [secretPhrase, setSecretPhrase] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { t } = useTranslation();
+
+  const handleSetPassword = async () => {
+
+    if (!username.trim()) {
+    Swal.fire({
+      title: 'Oops 😢',
+      text: 'Username is required',
+      background: '#fff0f6',
+      confirmButtonColor: '#d63384'
+    });
+    return;
+  }
+  
+  if (!newPassword.trim() || newPassword.length < 6) {
+    Swal.fire({
+      title: 'Oops 😢',
+      text: 'Password must be at least 6 characters',
+      background: '#fff0f6',
+      confirmButtonColor: '#d63384'
+    });
+    return;
+  }
+
+  if (newPassword !== confirmPassword) {
+    Swal.fire({
+      title: 'Oops 😢',
+      text: 'Passwords do not match',
+      background: '#fff0f6',
+      confirmButtonColor: '#d63384'
+    });
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/api/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }, 
+      body: JSON.stringify({
+        username,          
+        newPassword        
+      })
+    });
+
+    if (!response.ok) {
+      const errData = await response.json();
+      throw new Error(errData.error || 'Failed to reset password');
+    }
+
+    Swal.fire({
+      title: 'Success!',
+      text: 'Password updated successfully',
+      icon: 'success',
+      background: '#fff0f6',
+      confirmButtonColor: '#d63384'
+    });
+
+    setForgotPasswordMode(false);
+    setNewPassword('');
+    setConfirmPassword('');
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
+
+
+  } catch (err) {
+    Swal.fire({
+      title: 'Error',
+      text: err.message,
+      icon: 'error',
+      background: '#fff0f6',
+      confirmButtonColor: '#d63384'
+    });
+  }
+};
+
+
 
   const handleUsername = async () => {
     if (!username.trim()) {
@@ -160,6 +240,83 @@ function Username() {
         <p className="toggle-mode" onClick={() => setIsReturningUser(!isReturningUser)}>
           {isReturningUser ? t('username.toggleToRegister') : t('username.toggleToLogin')}
         </p>
+
+        <p className="forgot-password" onClick={() => setForgotPasswordMode(true)}>
+          Forgot password?
+        </p>
+
+        {forgotPasswordMode && (
+  <div className="modal-overlay" onClick={() => setForgotPasswordMode(false)}>
+    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <h2>Set New Secret Phrase</h2>
+
+      {/* Username */}
+      <input
+        type="text"
+        placeholder="Enter username"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+        className="username-input"
+      />
+
+      {/* New password */}
+      <div className="password-input-container">
+        <input
+          type={showNewPassword ? 'text' : 'password'}
+          placeholder="Enter new secret phrase (min 6 chars)"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+          className="username-input"
+          minLength={6}
+        />
+        <button
+        type="button"
+        className="password-toggle-btn"
+        onClick={() => setShowNewPassword(prev => !prev)}
+        aria-label={showNewPassword ? 'Hide password' : 'Show password'}
+        >
+        {showNewPassword ? '🙈' : '👁️'}
+        </button>
+        </div>
+
+      {/* Confirm password */}
+      <div className="password-input-container">
+      <input
+        type={showConfirmPassword ? 'text' : 'password'}
+        placeholder="Confirm new secret phrase"
+        value={confirmPassword}
+        onChange={(e) => setConfirmPassword(e.target.value)}
+        className="username-input"
+      />
+      <button
+        type="button"
+        className="password-toggle-btn"
+        onClick={() => setShowConfirmPassword(prev => !prev)}
+        aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+      >
+      {showConfirmPassword ? '🙈' : '👁️'}
+      </button>
+      </div>
+
+
+      <button className="modal-btn" onClick={handleSetPassword}>
+        Set Password
+      </button>
+
+      <button
+        className="modal-btn back-btn"
+         onClick={() => {
+            setForgotPasswordMode(false);
+            setShowNewPassword(false);
+            setShowConfirmPassword(false);
+          }}
+      >
+        Go Back
+      </button>
+    </div> 
+  </div>
+)}
+
       </div>
     </div>
   );
