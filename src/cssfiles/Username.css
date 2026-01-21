@@ -26,6 +26,23 @@
 .toggle-mode { margin-top: 10px; color: var(--text-700); cursor: pointer; }
 .toggle-mode:hover { color: var(--pink-600); text-decoration: underline; }
 
+.otp-container {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 15px 0;
+}
+
+.otp-input {
+  width: 42px;
+  height: 46px;
+  text-align: center;
+  font-size: 18px;
+  border-radius: 6px;
+  border: 1px solid #d63384;
+}
+
+
 .forgot-password {
   margin-top: 8px;
   color: var(--text-700);

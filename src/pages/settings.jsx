@@ -233,6 +233,7 @@ const handleDeleteAccount = () => {
       <button className="btn">{t('settings.manage')}</button>
     </div>
 
+      {/** 
     <div className="settings-option">
       <i className="bi bi-brightness-high-fill"></i>
       <div>
@@ -241,6 +242,7 @@ const handleDeleteAccount = () => {
       </div>
       <button className="btn">{t('settings.switch')}</button>
     </div>
+        */}
 
     <div className="settings-option">
       <i className="bi bi-person-x-fill"></i>

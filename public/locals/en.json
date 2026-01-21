@@ -13,7 +13,6 @@
     "enterSecret": "Enter your secret phrase(min 6 characters)...",
     "continue": "Continue",
     "login": "Login",
-    "toggleToLogin": "Already have an account? Login",
     "toggleToRegister": "New user? Create account"
   },
 
