@@ -1,98 +1,251 @@
 @import './layout.css';
 
-/* Home Feed */
-.HomePage { min-height: 100vh; }
+/* ================= HOME PAGE ================= */
 
-/* feed content */
+.HomePage {
+  min-height: 100vh;
+}
+
+/* ================= POSTS ================= */
+
 .feed .post {
-  background: rgba(255,255,255,0.8);
+  background: rgba(255,255,255,0.85);
   border: 1px solid var(--rose-200);
   border-radius: var(--radius-lg);
   padding: 14px;
   margin: 10px 0;
   box-shadow: var(--shadow);
 }
-.post-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.post-avatar { width: 36px; height: 36px; border-radius: 50%; margin-right: 10px; object-fit: cover; border: 2px solid var(--pink-300); }
-.post-header h3 { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 16px; }
-.post-time { color: var(--text-500); font-size: 12px; }
-.post-body p { margin: 10px 0 6px; color: var(--text-700); }
 
-.post-actions { display: flex; align-items: center; gap: 12px; }
-.post-actions .liked { color: var(--pink-600); }
-.likes-count, .comment-count { color: var(--text-500); font-size: 13px; }
-
-/* Comments */
-.comment-section { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--rose-200); }
-.comment-box { 
-  display: flex; 
-  align-items: center; 
-  gap: 8px; 
-  background: var(--white); 
-  border: 1px solid var(--rose-200); 
-  border-radius: 12px; 
-  padding: 8px 10px; 
-  position: relative; /* ✅ anchor emoji popup */
+.post-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
 }
-.comment-box input { flex: 1; border: 0; outline: none; }
-.emoji-btn { background: linear-gradient(135deg, var(--pink-300), var(--pink-500)); color: #fff; border: 0; border-radius: 8px; padding: 6px 8px; cursor: pointer; }
 
-/* Emoji popup for comments */
+.post-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.post-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--pink-300);
+}
+
+.post-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 16px;
+}
+
+.post-time {
+  font-size: 12px;
+  color: var(--text-500);
+}
+
+/* ================= 3 DOT MENU ================= */
+
+.post-menu {
+  position: relative;
+  cursor: pointer;
+}
+
+.post-menu i {
+  font-size: 18px;
+}
+
+.post-menu-dropdown {
+  position: absolute;
+  right: 0;
+  top: 22px;
+  background: #f1ecec;
+  border-radius: 10px;
+  padding: 6px;
+  z-index: 999;
+  min-width: 120px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+}
+
+.menu-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.menu-item:hover {
+  background: rgba(0,0,0,0.06);
+}
+
+.menu-item.delete {
+  color: #ff4d4f;
+}
+
+/* ================= POST BODY ================= */
+
+.post-body p {
+  margin: 10px 0 6px;
+  color: var(--text-700);
+  line-height: 1.4;
+}
+
+/* ================= EDIT POST ================= */
+
+.edit-post-box {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--rose-200);
+  border-radius: 12px;
+  padding: 8px 10px;
+  margin-top: 6px;
+  box-shadow: var(--shadow);
+}
+
+.edit-post-box input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: var(--text-700);
+}
+
+.edit-post-box button {
+  border: none;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.edit-post-box button:first-of-type {
+  background: linear-gradient(135deg, var(--pink-300), var(--pink-500));
+  color: white;
+}
+
+.edit-post-box button:last-of-type {
+  background: transparent;
+  color: var(--text-500);
+}
+
+.edit-post-box button:hover {
+  filter: brightness(1.05);
+}
+
+/* ================= POST ACTIONS ================= */
+
+.post-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.post-actions i {
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.post-actions .liked {
+  color: var(--pink-600);
+}
+
+.likes-count,
+.comment-count {
+  font-size: 13px;
+  color: var(--text-500);
+}
+
+/* ================= COMMENTS ================= */
+
+.comment-section {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--rose-200);
+}
+
+.comment-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid var(--rose-200);
+  border-radius: 12px;
+  padding: 8px 10px;
+  position: relative;
+}
+
+.comment-box input {
+  flex: 1;
+  border: none;
+  outline: none;
+}
+
+.send-icon {
+  color: var(--pink-600);
+  cursor: pointer;
+}
+
+/* ================= EMOJI ================= */
+
+.emoji-btn {
+  background: linear-gradient(135deg, var(--pink-300), var(--pink-500));
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+
 .emoji-popup,
 .emoji-picker-container {
   position: absolute;
   top: 110%;
   left: 0;
+  width: 320px;
+  height: 320px;
   background: #fff;
   border: 1px solid var(--rose-200);
   border-radius: 12px;
   box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-  width: 320px;
-  height: 320px;              /* ✅ bigger height for picker */
+  z-index: 9999;
   display: flex;
   flex-direction: column;
-  z-index: 9999;              /* ✅ stay above everything */
   overflow: hidden;
 }
-/* Header bar (fixed at top) */
+
 .emoji-popup-header,
 .emoji-picker-header {
-  flex: 0 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 6px 10px;
-  border-bottom: 1px solid var(--rose-200);
   background: var(--pink-50);
+  border-bottom: 1px solid var(--rose-200);
 }
-.emoji-popup-title,
-.emoji-picker-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-700);
-}
+
 .close-emoji-btn {
   border: none;
   background: transparent;
-  font-size: 16px;
   cursor: pointer;
+  font-size: 16px;
   color: var(--pink-600);
-  font-weight: bold;
 }
-.close-emoji-btn:hover { color: var(--pink-700); }
-.emoji-popup .EmojiPickerReact,
-.emoji-picker-container .EmojiPickerReact {
-  flex: 1;                   /* ✅ fill remaining space */
-  overflow-y: auto;          /* ✅ scroll inside */
-  padding: 6px;
-}
-.send-icon { color: var(--pink-600); cursor: pointer; }
 
-.comment-replies { margin-top: 10px; display: grid; gap: 8px; }
-.single-comment { background: var(--pink-50); border: 1px solid var(--rose-100); border-radius: 8px; padding: 8px; color: var(--text-700); }
+/* ================= ADD POST ================= */
 
-/* Add Post */
-/* Overlay */
 .popup-overlay {
   position: fixed;
   inset: 0;
@@ -103,32 +256,43 @@
   z-index: 999;
 }
 
-/* Post box itself (centered modal, not full page) */
 .popup-post-box {
   background: #fff;
   border-radius: 16px;
   padding: 20px;
   width: min(500px, 92vw);
   box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-  position: relative;
-  z-index: 1000;
 }
 
-/* Input inside post box */
-.post-input { 
-  position: relative; 
-  display: flex; 
-  align-items: center; 
-  gap: 8px; 
-  background: #fff; 
-  border: 1px solid var(--rose-200); 
-  border-radius: 12px; 
-  padding: 10px 12px; 
-  width: 100%; 
-  box-shadow: var(--shadow); 
+.post-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--rose-200);
+  border-radius: 12px;
+  padding: 10px 12px;
 }
-.post-input input { flex: 1; border: 0; outline: none; }
 
-.add-post-bottom { position: sticky; bottom: 8px; display: grid; place-items: center; margin-top: 10px; }
-.add-post-btn { background: linear-gradient(135deg, var(--pink-300), var(--pink-500)); color: #fff; border: 0; padding: 12px 16px; border-radius: 999px; box-shadow: var(--shadow); cursor: pointer; font-weight: 700; }
-.add-post-btn:hover { filter: brightness(1.03); }
+.post-input input {
+  flex: 1;
+  border: none;
+  outline: none;
+}
+
+.add-post-bottom {
+  position: sticky;
+  bottom: 8px;
+  display: grid;
+  place-items: center;
+  margin-top: 10px;
+}
+
+.add-post-btn {
+  background: linear-gradient(135deg, var(--pink-300), var(--pink-500));
+  color: #fff;
+  border: none;
+  padding: 12px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 700;
+}

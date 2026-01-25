@@ -21,6 +21,9 @@ function Profile() {
   const [activeTab, setActiveTab] = useState("posts");
   const [followersList, setFollowersList] = useState([]);
   const [followingList, setFollowingList] = useState([]);
+  const [openMenu, setOpenMenu] = useState(null);
+  const [editingPostId, setEditingPostId] = useState(null);
+  const [editText, setEditText] = useState("");
 
   const presetAvatars = [
     "/pfps/default.png",
@@ -69,7 +72,9 @@ function Profile() {
     async function fetchMyProfile() {
       try {
         const res = await fetch(`${API_URL}/api/profile/${loggedInUsername}`, {
-          headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
+          headers: {
+            Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+          },
         });
         if (res.ok) {
           const data = await res.json();
@@ -87,7 +92,9 @@ function Profile() {
     async function fetchProfile() {
       try {
         const res = await fetch(`${API_URL}/api/profile/${username}`, {
-          headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
+          headers: {
+            Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+          },
         });
         if (!res.ok) return;
         const data = await res.json();
@@ -98,7 +105,11 @@ function Profile() {
         if (loggedInUsername && loggedInUsername !== username.toLowerCase()) {
           const followRes = await fetch(
             `${API_URL}/api/profile/is-Following/${data.id}`,
-            { headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` } }
+            {
+              headers: {
+                Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+              },
+            },
           );
           if (followRes.ok) {
             const followData = await followRes.json();
@@ -155,6 +166,68 @@ function Profile() {
   const handleMessage = () => {
     navigate(`/dm/chatpage/${profile.id}/${username}`);
   };
+  const toggleMenu = (postId) => {
+    setOpenMenu((prev) => (prev === postId ? null : postId));
+  };
+
+  const startEdit = (post) => {
+    setEditingPostId(post.id);
+    setEditText(post.content);
+    setOpenMenu(null);
+  };
+
+  const saveEdit = async (postId) => {
+    if (!editText.trim()) return;
+
+    try {
+      const res = await fetch(`${API_URL}/api/home/posts/${postId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({ content: editText }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to update post");
+      }
+
+      setPosts((prev) =>
+        prev.map((p) => (p.id === postId ? { ...p, content: editText } : p)),
+      );
+
+      setEditingPostId(null);
+      setEditText("");
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const deletePost = async (postId) => {
+    const confirmDelete = window.confirm("Delete this post?");
+    if (!confirmDelete) return;
+
+    try {
+      const res = await fetch(`${API_URL}/api/home/posts/${postId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+        },
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to delete post");
+      }
+
+      setPosts((prev) => prev.filter((p) => p.id !== postId));
+      setOpenMenu(null);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
 
   const handleFollow = async () => {
     try {
@@ -177,9 +250,14 @@ function Profile() {
 
   const fetchFollowers = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/profile/followers/${profile.id}`, {
-        headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
-      });
+      const res = await fetch(
+        `${API_URL}/api/profile/followers/${profile.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+          },
+        },
+      );
 
       if (res.ok) {
         const data = await res.json();
@@ -192,9 +270,14 @@ function Profile() {
 
   const fetchFollowing = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/profile/following/${profile.id}`, {
-        headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
-      });
+      const res = await fetch(
+        `${API_URL}/api/profile/following/${profile.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+          },
+        },
+      );
       if (res.ok) {
         const data = await res.json();
         setFollowingList(data.following || []);
@@ -215,50 +298,67 @@ function Profile() {
         className="bg-image"
       />
 
-      <nav className="Navbar">{t('home.navbar')}</nav>
+      <nav className="Navbar">{t("home.navbar")}</nav>
       <div className="main-content">
         <aside className="left-panel">
           <ul className="leftpanel-animated">
-            <Link to="/home" style={{ textDecoration: 'none' }}>
-              <li style={{ '--i': '#a955ff', '--j': '#ea51ff' }}>
-                <div className="icon"><i className="bi bi-house"></i></div>
-                <span className="title">{t('home.tabs.home')}</span>
+            <Link to="/home" style={{ textDecoration: "none" }}>
+              <li style={{ "--i": "#a955ff", "--j": "#ea51ff" }}>
+                <div className="icon">
+                  <i className="bi bi-house"></i>
+                </div>
+                <span className="title">{t("home.tabs.home")}</span>
               </li>
             </Link>
-            <Link to="/search" style={{ textDecoration: 'none' }}>
-              <li style={{ '--i': '#56CCF2', '--j': '#2F80ED' }}>
-                <div className="icon"><i className="bi bi-search"></i></div>
-                <span className="title">{t('home.tabs.search')}</span>
+            <Link to="/search" style={{ textDecoration: "none" }}>
+              <li style={{ "--i": "#56CCF2", "--j": "#2F80ED" }}>
+                <div className="icon">
+                  <i className="bi bi-search"></i>
+                </div>
+                <span className="title">{t("home.tabs.search")}</span>
               </li>
             </Link>
-            <Link to="/room" style={{ textDecoration: 'none' }}>
-              <li style={{ '--i': '#80FF72', '--j': '#7EE8FA' }}>
-                <div className="icon"><i className="bi bi-tv"></i></div>
-                <span className="title">{t('home.tabs.room')}</span>
+            <Link to="/room" style={{ textDecoration: "none" }}>
+              <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
+                <div className="icon">
+                  <i className="bi bi-tv"></i>
+                </div>
+                <span className="title">{t("home.tabs.room")}</span>
               </li>
             </Link>
-            <Link to="/dm" style={{ textDecoration: 'none' }}>
-              <li style={{ '--i': '#ffa9c6', '--j': '#f434e2' }}>
-                <div className="icon"><i className="bi bi-chat-dots"></i></div>
-                <span className="title">{t('home.tabs.dm')}</span>
+            <Link to="/dm" style={{ textDecoration: "none" }}>
+              <li style={{ "--i": "#ffa9c6", "--j": "#f434e2" }}>
+                <div className="icon">
+                  <i className="bi bi-chat-dots"></i>
+                </div>
+                <span className="title">{t("home.tabs.dm")}</span>
               </li>
             </Link>
-            <Link to="/notification" style={{ textDecoration: 'none' }}>
-              <li style={{ '--i': '#f6d365', '--j': '#fda085' }}>
-                <div className="icon"><i className="bi bi-bell"></i></div>
-                <span className="title">{t('home.tabs.notification')}</span>
+            <Link to="/notification" style={{ textDecoration: "none" }}>
+              <li style={{ "--i": "#f6d365", "--j": "#fda085" }}>
+                <div className="icon">
+                  <i className="bi bi-bell"></i>
+                </div>
+                <span className="title">{t("home.tabs.notification")}</span>
               </li>
             </Link>
-            <Link to="/settings" style={{ textDecoration: 'none' }}>
-              <li style={{ '--i': '#84fab0', '--j': '#8fd3f4' }}>
-                <div className="icon"><i className="bi bi-gear"></i></div>
-                <span className="title">{t('home.tabs.settings')}</span>
+            <Link to="/settings" style={{ textDecoration: "none" }}>
+              <li style={{ "--i": "#84fab0", "--j": "#8fd3f4" }}>
+                <div className="icon">
+                  <i className="bi bi-gear"></i>
+                </div>
+                <span className="title">{t("home.tabs.settings")}</span>
               </li>
             </Link>
-            <Link to={`/profile/${loggedInUsername}`} style={{ textDecoration: 'none' }}>
-              <li style={{ '--i': '#c471f5', '--j': '#fa71cd' }}>
-                <div className="icon"><i className="bi bi-person"></i></div>
-                <span className="title">{t('home.tabs.profile')}</span>
+            <Link
+              to={`/profile/${loggedInUsername}`}
+              style={{ textDecoration: "none" }}
+            >
+              <li style={{ "--i": "#c471f5", "--j": "#fa71cd" }}>
+                <div className="icon">
+                  <i className="bi bi-person"></i>
+                </div>
+                <span className="title">{t("home.tabs.profile")}</span>
               </li>
             </Link>
           </ul>
@@ -299,7 +399,9 @@ function Profile() {
                     ))}
                   </div>
                   <div className="upload-avatar">
-                    <label htmlFor="avatarUpload" className="upload-btn">Upload Avatar</label>
+                    <label htmlFor="avatarUpload" className="upload-btn">
+                      Upload Avatar
+                    </label>
                     <input
                       type="file"
                       id="avatarUpload"
@@ -343,7 +445,9 @@ function Profile() {
 
               {!isOwnProfile && (
                 <div className="profile-buttons">
-                  <button className="message-button" onClick={handleMessage}>Message</button>
+                  <button className="message-button" onClick={handleMessage}>
+                    Message
+                  </button>
                   <button
                     className={`follow-button ${isFollowing ? "following" : ""}`}
                     onClick={handleFollow}
@@ -360,8 +464,8 @@ function Profile() {
               {activeTab === "posts"
                 ? "My Posts"
                 : activeTab === "followers"
-                ? "Followers"
-                : "Following"}
+                  ? "Followers"
+                  : "Following"}
             </h3>
 
             {activeTab === "posts" && (
@@ -369,7 +473,60 @@ function Profile() {
                 {posts.length > 0 ? (
                   posts.map((post) => (
                     <div className="grid-post" key={post.id}>
-                      <p>{post.content}</p>
+                      <div className="grid-post-header">
+                        {isOwnProfile && (
+                          <div className="post-menu">
+                            <i
+                              className="bi bi-three-dots"
+                              onClick={() => toggleMenu(post.id)}
+                            ></i>
+
+                            {openMenu === post.id && (
+                              <div className="post-menu-dropdown">
+                                <div
+                                  className="menu-item"
+                                  onClick={() => startEdit(post)}
+                                >
+                                  Edit <i className="bi bi-pencil"></i>
+                                </div>
+                                <div
+                                  className="menu-item delete"
+                                  onClick={() => deletePost(post.id)}
+                                >
+                                  Delete <i className="bi bi-trash"></i>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="grid-post-content">
+                        {editingPostId === post.id ? (
+                          <div className="edit-post-box">
+                            <textarea
+                              value={editText}
+                              onChange={(e) => setEditText(e.target.value)}
+                            />
+                            <div className="edit-post-actions">
+                              <button
+                                className="save"
+                                onClick={() => saveEdit(post.id)}
+                              >
+                                Save
+                              </button>
+                              <button
+                                className="cancel"
+                                onClick={() => setEditingPostId(null)}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <p>{post.content}</p>
+                        )}
+                      </div>
                     </div>
                   ))
                 ) : (
@@ -413,10 +570,10 @@ function Profile() {
         </section>
 
         <aside className="right-panel">
-          <p className="welcome-text">{t('home.greeting')}</p>
+          <p className="welcome-text">{t("home.greeting")}</p>
           <div className="reach-out">
-            <span>{t('home.reachOut')}</span>
-            <a 
+            <span>{t("home.reachOut")}</span>
+            <a
               href="https://instagram.com/yourusername"
               target="_blank"
               rel="noopener noreferrer"

@@ -25,6 +25,7 @@ function Username() {
     useState(false);
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", ""]);
+  const [otpIdentifier, setOtpIdentifier] = useState("");
   const [isVerified, setIsVerified] = useState(false);
   const { t } = useTranslation();
 
@@ -44,6 +45,8 @@ function Username() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
+      setOtpIdentifier(verifyPurpose === "register" ? email : username);
+
       Swal.fire("OTP Sent", "Check your email", "success");
       setVerifyStep("otp");
     } catch (err) {
@@ -61,8 +64,8 @@ function Username() {
 
       const body =
         verifyPurpose === "register"
-          ? { email, otp: enteredOtp, purpose: "register" }
-          : { username, otp: enteredOtp, purpose: "forgot" };
+          ? { email: otpIdentifier, otp: enteredOtp, purpose: "register" }
+          : { username: otpIdentifier, otp: enteredOtp, purpose: "forgot" };
 
       const res = await fetch(`${API_URL}/api/auth/verify-otp`, {
         method: "POST",
@@ -79,13 +82,6 @@ function Username() {
       if (verifyPurpose === "register") {
         setHasVerifiedRegisterEmail(true);
         setIsReturningUser(false);
-
-        Swal.fire({
-          title: "Email verified ",
-          text: "Create your account now",
-          icon: "success",
-          confirmButtonColor: "#d63384",
-        });
       }
 
       if (verifyPurpose === "forgot") {
@@ -304,7 +300,7 @@ function Username() {
         )}
 
         <button className="username-btn" onClick={handleUsername}>
-          {isReturningUser ? "Login" : "Create Account"}
+          {isReturningUser ? "Login" : "Register"}
         </button>
 
         <p
