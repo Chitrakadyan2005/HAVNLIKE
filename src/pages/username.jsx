@@ -5,6 +5,12 @@ import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import API_URL from "../utils/api";
+import { auth } from "../firebase";
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword
+} from "firebase/auth";
+
 
 function Username() {
   const navigate = useNavigate();
@@ -169,67 +175,55 @@ function Username() {
   };
 
   const handleUsername = async () => {
-    // 🔐 LOGIN FLOW
+  try {
+    if (!email || !secretPhrase) {
+      Swal.fire("Error", "Email and password required", "error");
+      return;
+    }
+
+    let userCredential;
+
     if (isReturningUser) {
-      if (!username.trim() || !secretPhrase.trim()) {
-        Swal.fire("Error", "Enter username and secret phrase", "error");
-        return;
-      }
-    }
-
-    // 🆕 REGISTER FLOW
-    if (!isReturningUser) {
-      if (!hasVerifiedRegisterEmail) {
-        Swal.fire("Verify Email", "Please verify your email first", "warning");
-        return;
-      }
-
-      if (!username.trim()) {
-        Swal.fire("Error", "Username is required", "error");
-        return;
-      }
-
-      if (!secretPhrase || secretPhrase.length < 6) {
-        Swal.fire(
-          "Error",
-          "Secret phrase must be at least 6 characters",
-          "error",
-        );
-        return;
-      }
-    }
-
-    try {
-      const endpoint = isReturningUser
-        ? "/api/auth/login"
-        : "/api/auth/register";
-
-      const body = {
-        username,
+      // 🔐 FIREBASE LOGIN
+      userCredential = await signInWithEmailAndPassword(
+        auth,
         email,
-        secret_phrase: secretPhrase,
-      };
-
-      const response = await fetch(`${API_URL}${endpoint}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error);
-
-      sessionStorage.setItem("token", data.token);
-      sessionStorage.setItem("username", data.username);
-
-      const { refreshSocketAuth } = await import("../socket");
-      refreshSocketAuth();
-
-      navigate(`/profile/${data.username}`);
-    } catch (err) {
-      Swal.fire("Error", err.message, "error");
+        secretPhrase
+      );
+    } else {
+      // 🆕 FIREBASE REGISTER
+      userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        secretPhrase
+      );
     }
-  };
+
+    // 🔑 Get Firebase ID token
+    const token = await userCredential.user.getIdToken();
+    console.log("🔥 Firebase ID Token:", token);
+
+    // 🔁 Sync with backend
+    const res = await fetch(`${API_URL}/api/auth/firebase-login`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) throw new Error("Backend sync failed");
+
+    const data = await res.json();
+
+    // ✅ Store Firebase token (NOT old JWT)
+    sessionStorage.setItem("token", token);
+
+    navigate(`/profile/${data.user.username || "me"}`);
+  } catch (err) {
+    Swal.fire("Error", err.message, "error");
+  }
+};
+
 
   return (
     <div className="username-page">
