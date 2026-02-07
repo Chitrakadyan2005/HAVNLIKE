@@ -281,13 +281,155 @@ a { color: inherit; }
 .bi { cursor: pointer; font-size: 20px; color: var(--text-500); }
 .bi:hover { color: var(--pink-600); }
 
-/* Responsive */
 @media (max-width: 1200px) {
-  .main-content { grid-template-columns: var(--left-w) 1fr; }
-  .right-panel { display: none; }
+  .main-content {
+    grid-template-columns: var(--left-w) 1fr;
+  }
 }
+
 @media (max-width: 820px) {
-  .main-content { grid-template-columns: 1fr; padding: 12px; }
-  .left-panel { display: none; }
-  .feed { min-height: auto; }
+  .main-content {
+    grid-template-columns: 1fr;
+    padding: 12px;
+  }
+
+  .left-panel {
+    display: none;
+  }
+
+  .feed {
+    min-height: auto;
+    padding-bottom: 90px;
+  }
+
+  .right-panel {
+    position: static;
+    height: auto;
+    margin-top: 20px;
+    display: block;
+  }
+}
+
+.mobile-bottom-nav {
+  display: none;
+}
+
+/* Mobile only */
+@media (max-width: 820px) {
+  .mobile-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    height: 64px;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(6px);
+
+    border-top: 1px solid var(--rose-200);
+    box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.08);
+
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+
+    z-index: 20;
+  }
+
+  /* Prevent feed from hiding behind bottom nav */
+  .feed {
+    padding-bottom: 90px;
+  }
+}
+
+@media (max-width: 820px) {
+  .feed-container {
+    height: auto;
+    overflow-y: visible;
+  }
+}
+
+/* Mobile only */
+@media (max-width: 820px) {
+  .mobile-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    height: 70px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+
+    border-top: 1px solid var(--rose-200);
+    box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.08);
+
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+
+    z-index: 20;
+    padding: 6px 8px;
+  }
+
+  /* RESET desktop UL behaviour */
+  .mobile-bottom-nav li {
+    all: unset;
+  }
+
+  /* Each icon container */
+  .mobile-bottom-nav li {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+
+  .mobile-bottom-nav li:active {
+    background: var(--pink-75);
+  }
+
+  /* Icon */
+  .mobile-bottom-nav .icon {
+    font-size: 22px;
+    color: var(--text-700);
+    transition: color 0.3s ease;
+  }
+
+  /* Text under icon */
+  .mobile-bottom-nav .title {
+    font-size: 10px;
+    margin-top: 2px;
+    color: var(--text-500);
+    letter-spacing: 0.05em;
+    text-transform: capitalize;
+  }
+
+  /* Remove DESKTOP hover animations on mobile */
+  .mobile-bottom-nav li::before,
+  .mobile-bottom-nav li::after {
+    display: none !important;
+  }
+
+  .mobile-bottom-nav li:hover {
+    width: 56px;
+    box-shadow: none;
+  }
+
+  .mobile-bottom-nav li:hover .icon,
+  .mobile-bottom-nav li:hover .title {
+    transform: none;
+  }
+
+  /* Prevent content hiding behind nav */
+  .feed {
+    padding-bottom: 110px;
+  }
 }

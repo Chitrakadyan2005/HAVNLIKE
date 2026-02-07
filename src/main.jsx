@@ -1,11 +1,9 @@
-if (typeof global === "undefined") {
-  window.global = window;
-}
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import App from './pages/App';
 import Username from './pages/username';
+import SetupUsername from './pages/SetupUsername';
 import Home from './pages/home';
 import Search from './pages/search';
 import Room from './pages/room';
@@ -20,15 +18,14 @@ import './i18n';
 import socket, { refreshSocketAuth } from './socket';
 import './cssfiles/App.css';
 
-// Ensure socket uses this tab's session credentials
 refreshSocketAuth();
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<App />} />
         <Route path="/username" element={<Username />} />
+        <Route path="/setup-username" element={<SetupUsername />} />
         <Route path="/home" element={<Home />} />
         <Route path="/search" element={<Search />} />
         <Route path="/room" element={<Room />} />
@@ -41,5 +38,4 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path='/room/:roomName/stream' element= {<StreamRoom socket={socket} />}/>
       </Routes>
     </BrowserRouter>
-  </React.StrictMode>
 );

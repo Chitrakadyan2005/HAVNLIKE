@@ -184,6 +184,62 @@ function Dm(){
                         </div>
                     </aside>
         </div>
+        <nav className="mobile-bottom-nav">
+                <Link to="/home" style={{ textDecoration: "none" }}>
+                  <li style={{ "--i": "#a955ff", "--j": "#ea51ff" }}>
+                    <div className="icon">
+                      <i className="bi bi-house"></i>
+                    </div>
+                    <span className="title">{t("home.tabs.home")}</span>
+                  </li>
+                </Link>
+                <Link to="/search" style={{ textDecoration: "none" }}>
+                  <li style={{ "--i": "#56CCF2", "--j": "#2F80ED" }}>
+                    <div className="icon">
+                      <i className="bi bi-search"></i>
+                    </div>
+                    <span className="title">{t("home.tabs.search")}</span>
+                  </li>
+                </Link>
+                <Link to="/room" style={{ textDecoration: "none" }}>
+                  <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
+                    <div className="icon">
+                      <i className="bi bi-tv"></i>
+                    </div>
+                    <span className="title">{t("home.tabs.room")}</span>
+                  </li>
+                </Link>
+                <Link to="/dm" style={{ textDecoration: "none" }}>
+                  <li style={{ "--i": "#ffa9c6", "--j": "#f434e2" }}>
+                    <div className="icon">
+                      <i className="bi bi-chat-dots"></i>
+                    </div>
+                    <span className="title">{t("home.tabs.dm")}</span>
+                  </li>
+                </Link>
+                <Link to="/notification" style={{ textDecoration: "none" }}>
+                  <li style={{ "--i": "#f6d365", "--j": "#fda085" }}>
+                    <div className="icon">
+                      <i className="bi bi-bell"></i>
+                    </div>
+                    <span className="title">{t("home.tabs.notification")}</span>
+                  </li>
+                </Link>
+                <Link to="/settings" style={{ textDecoration: "none" }}>
+                  <li style={{ "--i": "#84fab0", "--j": "#8fd3f4" }}>
+                    <div className="icon">
+                      <i className="bi bi-gear"></i>
+                    </div>
+                    <span className="title">{t("home.tabs.settings")}</span>
+                  </li>
+                </Link>
+                <Link to={`/profile/${username}`} style={{ textDecoration: 'none' }}>
+                                        <li style={{ '--i': '#c471f5', '--j': '#fa71cd' }}>
+                                            <div className="icon"><i className="bi bi-person"></i></div>
+                                            <span className="title">{t('home.tabs.profile')}</span>
+                                        </li>
+                                    </Link>
+              </nav>
         </div>
     )
 }

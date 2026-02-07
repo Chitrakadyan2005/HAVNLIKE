@@ -7,7 +7,8 @@ import '../cssfiles/App.css';
 function App() {
   const navigate = useNavigate();
   const { t } = useTranslation();
-
+ 
+ 
   const handleJoinClick = () => {
     navigate('/username'); 
   };

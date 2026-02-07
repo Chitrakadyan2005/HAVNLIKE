@@ -11,6 +11,7 @@ function Profile() {
   const { username } = useParams();
   const { t } = useTranslation();
 
+  const getToken = () => sessionStorage.getItem("token");
   const [myProfile, setMyProfile] = useState(null);
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
@@ -24,6 +25,12 @@ function Profile() {
   const [openMenu, setOpenMenu] = useState(null);
   const [editingPostId, setEditingPostId] = useState(null);
   const [editText, setEditText] = useState("");
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editBio, setEditBio] = useState("");
+  const [editUsername, setEditUsername] = useState("");
+  const [profileViewMode, setProfileViewMode] = useState(null);
+  const [activityPosts, setActivityPosts] = useState([]);
 
   const presetAvatars = [
     "/pfps/default.png",
@@ -39,7 +46,7 @@ function Profile() {
     "/pfps/pfp10.jpg",
   ];
 
-  // ✅ Return proper avatar (default only if not chosen)
+  // Return proper avatar (default only if not chosen)
   const getAvatar = (url) => {
     if (!url || url === "null" || url.trim() === "") {
       return "/pfps/default.png";
@@ -49,7 +56,7 @@ function Profile() {
     return `/pfps/${url}`;
   };
 
-  // ✅ Logged-in username
+  // Logged-in username
   useEffect(() => {
     const sessionUsername = sessionStorage.getItem("username");
     if (sessionUsername) {
@@ -67,81 +74,100 @@ function Profile() {
     }
   }, []);
 
-  // ✅ Fetch logged-in user's own profile (so it doesn't change)
-  useEffect(() => {
-    async function fetchMyProfile() {
-      try {
-        const res = await fetch(`${API_URL}/api/profile/${loggedInUsername}`, {
-          headers: {
-            Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-          },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setMyProfile(data);
-        }
-      } catch (err) {
-        console.error("Error loading my profile:", err);
-      }
-    }
-    if (loggedInUsername) fetchMyProfile();
-  }, [loggedInUsername]);
-
-  // ✅ Fetch target profile (your own or others)
-  useEffect(() => {
-    async function fetchProfile() {
-      try {
-        const res = await fetch(`${API_URL}/api/profile/${username}`, {
-          headers: {
-            Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-          },
-        });
-        if (!res.ok) return;
-        const data = await res.json();
-        setProfile(data);
-        setPosts(data.posts || []);
-        setFollowersCount(data.stats?.followers || 0);
-
-        if (loggedInUsername && loggedInUsername !== username.toLowerCase()) {
-          const followRes = await fetch(
-            `${API_URL}/api/profile/is-Following/${data.id}`,
-            {
-              headers: {
-                Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-              },
-            },
-          );
-          if (followRes.ok) {
-            const followData = await followRes.json();
-            setIsFollowing(followData.isFollowing);
-          }
-        }
-      } catch (err) {
-        console.error("Error fetching profile:", err);
-      }
-    }
-    if (loggedInUsername) fetchProfile();
-  }, [username, loggedInUsername]);
-
-  // ✅ Avatar choose (affects only your own profile)
-  const handleSelectAvatar = async (url) => {
-    setMyProfile({ ...myProfile, avatarUrl: url });
-    setShowAvatarOptions(false);
+  const fetchUserProfile = async () => {
     try {
-      await fetch(`${API_URL}/api/profile/avatar`, {
-        method: "PUT",
+      if (!loggedInUsername) return;
+
+      const token = getToken();
+      if (!token) return;
+
+      const res = await fetch(`${API_URL}/api/profile/${username}`, {
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ avatarUrl: url }),
       });
+
+      if (!res.ok) return;
+
+      const data = await res.json();
+      setProfile(data);
+      setPosts(data.posts || []);
+      setFollowersCount(data.stats?.followers || 0);
+
+      if (loggedInUsername !== username.toLowerCase()) {
+        const followRes = await fetch(
+          `${API_URL}/api/profile/is-Following/${data.id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        if (followRes.ok) {
+          const followData = await followRes.json();
+          setIsFollowing(followData.isFollowing);
+        }
+      }
     } catch (err) {
-      console.error("Failed to update avatar:", err);
+      console.error("Error fetching profile:", err);
     }
   };
 
-  // ✅ Avatar upload (only affects your profile)
+  const fetchMyProfile = async () => {
+    try {
+      const token = getToken();
+      if (!token) return;
+
+      const res = await fetch(`${API_URL}/api/auth/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) return;
+
+      const data = await res.json();
+      setMyProfile(data.user);
+    } catch (err) {
+      console.error("Error fetching my profile:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (!loggedInUsername) return;
+
+    fetchMyProfile();
+    fetchUserProfile();
+  }, [loggedInUsername, username]);
+
+  const handleSelectAvatar = async (url) => {
+    setMyProfile((prev) => ({
+      ...(prev || {}),
+      avatarUrl: url,
+    }));
+
+    setShowAvatarOptions(false);
+
+    try {
+      const token = getToken();
+      if (!token) return;
+
+      const res = await fetch(`${API_URL}/api/profile/avatar`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ avatarUrl: url }),
+      });
+
+      if (!res.ok) throw new Error("Unauthorized");
+    } catch (err) {
+      console.error("Avatar update failed:", err);
+    }
+  };
+
   const handleUploadAvatar = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -149,14 +175,23 @@ function Profile() {
     formData.append("avatar", file);
     setShowAvatarOptions(false);
     try {
+      const token = getToken();
+      if (!token) return;
+
       const res = await fetch(`${API_URL}/api/profile/avatar`, {
         method: "PUT",
-        headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body: formData,
       });
+
       if (res.ok) {
         const data = await res.json();
-        setMyProfile({ ...myProfile, avatarUrl: data.avatarUrl });
+        setMyProfile((prev) => ({
+          ...(prev || {}),
+          avatarUrl: data.avatarUrl,
+        }));
       }
     } catch (err) {
       console.error("Failed to upload avatar:", err);
@@ -180,11 +215,13 @@ function Profile() {
     if (!editText.trim()) return;
 
     try {
+      const token = getToken();
+      if (!token) return;
       const res = await fetch(`${API_URL}/api/home/posts/${postId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ content: editText }),
       });
@@ -210,10 +247,12 @@ function Profile() {
     if (!confirmDelete) return;
 
     try {
+      const token = getToken();
+      if (!token) return;
       const res = await fetch(`${API_URL}/api/home/posts/${postId}`, {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -231,12 +270,16 @@ function Profile() {
 
   const handleFollow = async () => {
     try {
+      const token = getToken();
+      if (!token) return;
       const url = isFollowing
         ? `${API_URL}/api/profile/unfollow/${profile.id}`
         : `${API_URL}/api/profile/follow/${profile.id}`;
       const res = await fetch(url, {
         method: "POST",
-        headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
       if (res.ok) {
         const data = await res.json();
@@ -250,11 +293,13 @@ function Profile() {
 
   const fetchFollowers = async () => {
     try {
+      const token = getToken();
+      if (!token) return;
       const res = await fetch(
         `${API_URL}/api/profile/followers/${profile.id}`,
         {
           headers: {
-            Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+            Authorization: `Bearer ${token}`,
           },
         },
       );
@@ -270,11 +315,13 @@ function Profile() {
 
   const fetchFollowing = async () => {
     try {
+      const token = getToken();
+      if (!token) return;
       const res = await fetch(
         `${API_URL}/api/profile/following/${profile.id}`,
         {
           headers: {
-            Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+            Authorization: `Bearer ${token}`,
           },
         },
       );
@@ -287,8 +334,78 @@ function Profile() {
     }
   };
 
+  const fetchLikedPosts = async () => {
+    try {
+      const token = getToken();
+      if (!token) return;
+      const res = await fetch(`${API_URL}/api/profile/liked-posts`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setActivityPosts(data.posts || []);
+      }
+    } catch (err) {
+      console.error("Failed to load liked posts");
+    }
+  };
+
+  const fetchCommentedPosts = async () => {
+    try {
+      const token = getToken();
+      if (!token) return;
+      const res = await fetch(`${API_URL}/api/profile/commented-posts`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setActivityPosts(data.posts || []);
+      }
+    } catch (err) {
+      console.error("Failed to load commented posts");
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+      const token = getToken();
+      if (!token) return;
+      const res = await fetch(`${API_URL}/api/profile/edit`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          username: editUsername,
+          bio: editBio,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Update failed");
+      }
+
+      const updated = await res.json();
+
+      setMyProfile(updated);
+      sessionStorage.setItem("username", updated.username);
+      navigate(`/profile/${updated.username}`);
+      setShowEditModal(false);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   const isOwnProfile = loggedInUsername === username?.toLowerCase();
-  const currentProfile = isOwnProfile ? myProfile : profile;
+  const currentProfile = profile;
 
   return (
     <div className="profilePage">
@@ -366,6 +483,55 @@ function Profile() {
 
         <section className="feed">
           <div className="profile-header">
+            {isOwnProfile && myProfile && (
+              <div className="profile-menu">
+                <i
+                  className="bi bi-three-dots-vertical"
+                  onClick={() => setShowProfileMenu(!showProfileMenu)}
+                ></i>
+
+                {showProfileMenu && (
+                  <div className="profile-menu-dropdown">
+                    <div
+                      className="menu-item"
+                      onClick={() => {
+                        setEditBio(currentProfile?.bio || "");
+                        setEditUsername(currentProfile?.username || "");
+                        setProfileViewMode("edit");
+                        setShowEditModal(true);
+                        setShowProfileMenu(false);
+                      }}
+                    >
+                      ✏️ Edit Profile
+                    </div>
+
+                    <div
+                      className="menu-item"
+                      onClick={() => {
+                        fetchLikedPosts();
+                        setProfileViewMode("liked");
+                        setShowEditModal(true);
+                        setShowProfileMenu(false);
+                      }}
+                    >
+                      ❤️ Liked Posts
+                    </div>
+
+                    <div
+                      className="menu-item"
+                      onClick={() => {
+                        fetchCommentedPosts();
+                        setProfileViewMode("commented");
+                        setShowEditModal(true);
+                        setShowProfileMenu(false);
+                      }}
+                    >
+                      💬 Commented Posts
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
             <div className="profile-image-container">
               <div className="profile-pic-wrapper">
                 <img
@@ -374,7 +540,8 @@ function Profile() {
                   className="profile-image"
                   onError={(e) => (e.target.src = "/pfps/default.png")}
                 />
-                {isOwnProfile && (
+
+                {isOwnProfile && myProfile && (
                   <div
                     className="add-avatar-btn"
                     onClick={() => setShowAvatarOptions(!showAvatarOptions)}
@@ -416,6 +583,10 @@ function Profile() {
 
             <div className="profile-info-box">
               <h2>@{currentProfile?.username || username}</h2>
+              {currentProfile?.bio && (
+                <p className="profile-bio">{currentProfile.bio}</p>
+              )}
+
               <div className="profile-stats-bar">
                 <div
                   className={`stat-item ${activeTab === "posts" ? "active" : ""}`}
@@ -443,7 +614,7 @@ function Profile() {
                 </div>
               </div>
 
-              {!isOwnProfile && (
+              {!isOwnProfile && profile && (
                 <div className="profile-buttons">
                   <button className="message-button" onClick={handleMessage}>
                     Message
@@ -474,7 +645,7 @@ function Profile() {
                   posts.map((post) => (
                     <div className="grid-post" key={post.id}>
                       <div className="grid-post-header">
-                        {isOwnProfile && (
+                        {isOwnProfile && myProfile && (
                           <div className="post-menu">
                             <i
                               className="bi bi-three-dots"
@@ -566,6 +737,83 @@ function Profile() {
                 ))}
               </div>
             )}
+            {showEditModal && (
+              <div className="modal-overlay">
+                <div className="edit-profile-modal">
+                  {profileViewMode === "edit" && (
+                    <>
+                      <h3>Edit Profile</h3>
+
+                      <label>Username</label>
+                      <input
+                        type="text"
+                        value={editUsername}
+                        onChange={(e) => setEditUsername(e.target.value)}
+                      />
+
+                      <label>Bio</label>
+                      <textarea
+                        rows="3"
+                        value={editBio}
+                        onChange={(e) => setEditBio(e.target.value)}
+                      />
+
+                      <div className="modal-actions">
+                        <button className="btn" onClick={handleSaveProfile}>
+                          Save
+                        </button>
+                        <button
+                          className="btn danger"
+                          onClick={() => {
+                            setShowEditModal(false);
+                            setProfileViewMode(null);
+                            setActivityPosts([]);
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </>
+                  )}
+
+                  {profileViewMode !== "edit" && (
+                    <>
+                      <h3>
+                        {profileViewMode === "liked"
+                          ? "❤️ Liked Posts"
+                          : "💬 Commented Posts"}
+                      </h3>
+
+                      <div className="modal-post-list">
+                        {activityPosts.length > 0 ? (
+                          activityPosts.map((post) => (
+                            <div key={post.id} className="modal-post">
+                              <p>{post.content}</p>
+                              <small>@{post.username}</small>
+                            </div>
+                          ))
+                        ) : (
+                          <p>No activity yet.</p>
+                        )}
+                      </div>
+
+                      <div className="modal-actions">
+                        <button
+                          className="btn"
+                          onClick={() => {
+                            setShowEditModal(false);
+                            setProfileViewMode(null);
+                            setActivityPosts([]);
+                          }}
+                        >
+                          Close
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
@@ -584,6 +832,67 @@ function Profile() {
           </div>
         </aside>
       </div>
+      <nav className="mobile-bottom-nav">
+        <Link to="/home" style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#a955ff", "--j": "#ea51ff" }}>
+            <div className="icon">
+              <i className="bi bi-house"></i>
+            </div>
+            <span className="title">{t("home.tabs.home")}</span>
+          </li>
+        </Link>
+        <Link to="/search" style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#56CCF2", "--j": "#2F80ED" }}>
+            <div className="icon">
+              <i className="bi bi-search"></i>
+            </div>
+            <span className="title">{t("home.tabs.search")}</span>
+          </li>
+        </Link>
+        <Link to="/room" style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
+            <div className="icon">
+              <i className="bi bi-tv"></i>
+            </div>
+            <span className="title">{t("home.tabs.room")}</span>
+          </li>
+        </Link>
+        <Link to="/dm" style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#ffa9c6", "--j": "#f434e2" }}>
+            <div className="icon">
+              <i className="bi bi-chat-dots"></i>
+            </div>
+            <span className="title">{t("home.tabs.dm")}</span>
+          </li>
+        </Link>
+        <Link to="/notification" style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#f6d365", "--j": "#fda085" }}>
+            <div className="icon">
+              <i className="bi bi-bell"></i>
+            </div>
+            <span className="title">{t("home.tabs.notification")}</span>
+          </li>
+        </Link>
+        <Link to="/settings" style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#84fab0", "--j": "#8fd3f4" }}>
+            <div className="icon">
+              <i className="bi bi-gear"></i>
+            </div>
+            <span className="title">{t("home.tabs.settings")}</span>
+          </li>
+        </Link>
+        <Link
+          to={`/profile/${loggedInUsername}`}
+          style={{ textDecoration: "none" }}
+        >
+          <li style={{ "--i": "#c471f5", "--j": "#fa71cd" }}>
+            <div className="icon">
+              <i className="bi bi-person"></i>
+            </div>
+            <span className="title">{t("home.tabs.profile")}</span>
+          </li>
+        </Link>
+      </nav>
     </div>
   );
 }
