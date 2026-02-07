@@ -3,7 +3,7 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 
 const firebaseConfig = {
-  apiKey: "AIzaSyATS7QDzw_rUJQFsZtKTIJs3z0o28XCHaQ",
+  apiKey: "",
   authDomain: "havnlike.firebaseapp.com",
   projectId: "havnlike",
 };
