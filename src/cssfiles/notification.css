@@ -1,7 +1,123 @@
-@import './layout.css';
+@import "./layout.css";
 
-/* Notifications */
-.notificationPage { min-height: 100vh; }
-.feed .post { background: rgba(255,255,255,0.85); border: 1px solid var(--rose-200); border-radius: var(--radius-lg); padding: 14px; margin: 10px 0; box-shadow: var(--shadow); }
-.post-header { display: flex; align-items: center; justify-content: space-between; }
-.post-time { color: var(--text-500); font-size: 12px; }
+/* Page */
+.notificationPage {
+  min-height: 100vh;
+}
+
+/* Feed container */
+.feed {
+  padding: 16px;
+}
+
+/* Notification card */
+.feed .post {
+  background: #ffffff;
+  border: 1px solid #f3c6d8;
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 14px rgba(255, 182, 193, 0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.feed .post:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(255, 182, 193, 0.35);
+}
+
+/* Header */
+.post-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Avatar + username */
+.notif-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.notif-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #f6a5c0;
+}
+
+.notif-user h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #7a1c3a;
+  margin: 0;
+}
+
+/* Time */
+.post-time {
+  font-size: 11px;
+  color: #b66a84;
+  white-space: nowrap;
+}
+
+/* Body */
+.post-body {
+  margin-top: 8px;
+}
+
+.post-body p {
+  font-size: 14px;
+  color: #5a2a3a;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+/* Action buttons */
+.notification-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+/* Accept */
+.notification-actions button:first-child {
+  padding: 6px 16px;
+  font-size: 12px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, #ffb6c1, #ff9eb5);
+  color: #5a0f2e;
+  transition: all 0.2s ease;
+}
+
+.notification-actions button:first-child:hover {
+  background: linear-gradient(135deg, #ff9eb5, #ff85a2);
+}
+
+/* Reject */
+.notification-actions button:last-child {
+  padding: 6px 16px;
+  font-size: 12px;
+  border-radius: 20px;
+  border: 1px solid #f3a3bd;
+  background: #fff0f5;
+  color: #7a1c3a;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.notification-actions button:last-child:hover {
+  background: #ffe1ea;
+}
+
+/* Accepted / rejected status text */
+.notification-status {
+  font-size: 13px;
+  font-weight: 500;
+  color: #b65a7a;
+  margin-top: 6px;
+  display: inline-block;
+}

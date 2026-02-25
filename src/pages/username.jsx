@@ -68,7 +68,7 @@ function Username() {
       const token = await userCredential.user.getIdToken(true);
 
       const res = await fetch(`${API_URL}/api/auth/firebase-login`, {
-        method: "GET",
+        method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -79,6 +79,7 @@ function Username() {
       sessionStorage.setItem("token", token);
       const data = await res.json();
       sessionStorage.setItem("username", data.user.username);
+      sessionStorage.setItem("userId", data.user.id);
 
       if (!data.user.username) {
         navigate("/setup-username");
@@ -112,7 +113,7 @@ function Username() {
       const token = await user.getIdToken(true);
 
       const res = await fetch(`${API_URL}/api/auth/firebase-login`, {
-        method: "GET",
+        method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -124,6 +125,7 @@ function Username() {
 
       sessionStorage.setItem("token", token);
       sessionStorage.setItem("username", data.user.username);
+      sessionStorage.setItem("userId", data.user.id);
 
       if (!data.user.username) {
         navigate("/setup-username");

@@ -1,26 +1,47 @@
-import '../cssfiles/room.css';
-import '../cssfiles/layout.css';
-import React, { useState , useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import StreamRoomModal from '../components/StreamRoomModal';
-import API_URL from '../utils/api';
+import "../cssfiles/room.css";
+import "../cssfiles/layout.css";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import StreamRoomModal from "../components/StreamRoomModal";
+import API_URL from "../utils/api";
 
 function Room() {
   const [selectedRoom, setSelectedRoom] = useState(null);
-  const [suggestionText, setSuggestionText] = useState('');
+  const [suggestionText, setSuggestionText] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [voted, setVoted] = useState({});
   const [showStreamModal, setShowStreamModal] = useState(false);
-  const [selectedStreamRoom, setSelectedStreamRoom] = useState('');
+  const [selectedStreamRoom, setSelectedStreamRoom] = useState("");
 
   const username = sessionStorage.getItem("username");
   const token = sessionStorage.getItem("token");
 
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const [hasUnread, setHasUnread] = useState(false);
 
-    const handleTabClick = (roomName) => {
+  useEffect(() => {
+    const checkUnread = async () => {
+      const token = sessionStorage.getItem("token");
+      if (!token) return;
+
+      try {
+        const res = await fetch(`${API_URL}/api/notification/unread`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const data = await res.json();
+        setHasUnread(data.hasUnread);
+      } catch (err) {
+        console.error("Unread check failed", err);
+      }
+    };
+
+    checkUnread();
+  }, []);
+
+  const handleTabClick = (roomName) => {
     // agar same tab pe click kare toh close kar do
     if (selectedRoom === roomName) {
       setSelectedRoom(null);
@@ -29,12 +50,12 @@ function Room() {
     }
   };
 
- useEffect(() => {
+  useEffect(() => {
     const fetchSuggestions = async () => {
       try {
         const res = await fetch(`${API_URL}/api/suggestions`, {
           headers: {
-            "Authorization": `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         });
         if (!res.ok) throw new Error("Failed to fetch suggestions");
@@ -48,38 +69,39 @@ function Room() {
     if (token) fetchSuggestions();
   }, [token]);
 
-const handleVote = async (id, type) => {
-  if (voted[id]) {
-    alert("You already voted!");
-    return;
-  }
+  const handleVote = async (id, type) => {
+    if (voted[id]) {
+      alert("You already voted!");
+      return;
+    }
 
-  try {
-    const response = await fetch(`${API_URL}/api/suggestions/${id}/vote`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,   // 👈 send token here
-      },
-      body: JSON.stringify({ vote: type }), // backend expects "vote", not "type"
-    });
+    try {
+      const response = await fetch(`${API_URL}/api/suggestions/${id}/vote`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // 👈 send token here
+        },
+        body: JSON.stringify({ vote: type }), // backend expects "vote", not "type"
+      });
 
-    if (!response.ok) throw new Error("Failed to vote");
+      if (!response.ok) throw new Error("Failed to vote");
 
-    const updated = await response.json();
+      const updated = await response.json();
 
-    setSuggestions(suggestions.map(s =>
-      s.id === id ? { ...s, yes_count: updated.yes_count, no_count: updated.no_count } : s
-    ));
+      setSuggestions(
+        suggestions.map((s) =>
+          s.id === id
+            ? { ...s, yes_count: updated.yes_count, no_count: updated.no_count }
+            : s,
+        ),
+      );
 
-    setVoted({ ...voted, [id]: type });
-  } catch (err) {
-    console.error("Error voting:", err);
-  }
-};
-
-
-
+      setVoted({ ...voted, [id]: type });
+    } catch (err) {
+      console.error("Error voting:", err);
+    }
+  };
 
   const handleSuggestionSend = async () => {
     if (!suggestionText.trim()) return;
@@ -89,7 +111,7 @@ const handleVote = async (id, type) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ suggestion: suggestionText }),
       });
@@ -97,7 +119,7 @@ const handleVote = async (id, type) => {
       if (!response.ok) throw new Error("Failed to send suggestion");
       const data = await response.json();
 
-      setSuggestionText('');
+      setSuggestionText("");
       setSuggestions((prev) => [data, ...prev]); // prepend because of DESC
     } catch (error) {
       console.error("Error sending suggestion:", error);
@@ -117,26 +139,26 @@ const handleVote = async (id, type) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ 
-          roomCode, 
-          roomName, 
-          createdBy: username 
+        body: JSON.stringify({
+          roomCode,
+          roomName,
+          createdBy: username,
         }),
       });
 
       if (!response.ok) throw new Error("Failed to create room");
-      
+
       setShowStreamModal(false);
-      
+
       // Navigate to stream room with room code
       navigate(`/room/${roomName}/stream`, {
-        state: { 
-          roomName, 
-          roomCode, 
-          isHost: true 
-        }
+        state: {
+          roomName,
+          roomCode,
+          isHost: true,
+        },
       });
     } catch (error) {
       console.error("Error creating room:", error);
@@ -149,7 +171,7 @@ const handleVote = async (id, type) => {
       // Verify room exists in backend
       const response = await fetch(`${API_URL}/api/stream-rooms/${roomCode}`, {
         headers: {
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -159,17 +181,17 @@ const handleVote = async (id, type) => {
       }
 
       const roomData = await response.json();
-      
+
       setShowStreamModal(false);
-      
+
       // Navigate to stream room with room code
       navigate(`/room/${roomName}/stream`, {
-        state: { 
-          roomName, 
-          roomCode, 
+        state: {
+          roomName,
+          roomCode,
           isHost: false,
-          hostUsername: roomData.createdBy
-        }
+          hostUsername: roomData.createdBy,
+        },
       });
     } catch (error) {
       console.error("Error joining room:", error);
@@ -177,110 +199,142 @@ const handleVote = async (id, type) => {
     }
   };
 
-
-   const rooms = [
-    'Self-Care & Serenity 🧘‍♀️',
-    'Body Love 💗',
-    'K-pop Crush 🎶',
-    'K-Drama Feels 🎬',
-    'Broken Bonds 💔',
-    'Solo Escapes ✈️',
-    'Swipe Stories 📱',
-    'Hustle & Heart 💼',
-    '2025 Fashion Files 👗',
-    'Glow Up Goals 🌟',
-    'Bookie Girlies 📚'
+  const rooms = [
+    "Self-Care & Serenity 🧘‍♀️",
+    "Body Love 💗",
+    "K-pop Crush 🎶",
+    "K-Drama Feels 🎬",
+    "Broken Bonds 💔",
+    "Solo Escapes ✈️",
+    "Swipe Stories 📱",
+    "Hustle & Heart 💼",
+    "2025 Fashion Files 👗",
+    "Glow Up Goals 🌟",
+    "Bookie Girlies 📚",
   ];
 
-    return(
-        <div className='RoomPage'>
-        <img
-            src="https://i.pinimg.com/736x/64/5f/40/645f4034ce36c03a18e0211b0f6728c4.jpg"
-            alt="wallpaper"
-            className="bg-image"
-        />
+  return (
+    <div className="RoomPage">
+      <img
+        src="https://i.pinimg.com/736x/64/5f/40/645f4034ce36c03a18e0211b0f6728c4.jpg"
+        alt="wallpaper"
+        className="bg-image"
+      />
 
-        <nav className='Navbar'>
-            {t('home.navbar')}
-        </nav>
-        <div className='main-content'>
-            <aside className='left-panel'>
-                <ul className='leftpanel-animated'>
-                   <Link to="/home" style={{ textDecoration: 'none' }}>
-                        <li style={{ '--i': '#a955ff', '--j': '#ea51ff' }}>
-                            <div className="icon"><i className="bi bi-house"></i></div>
-                            <span className="title">{t('home.tabs.home')}</span>
-                        </li>
-                    </Link>
+      <nav className="Navbar">{t("home.navbar")}</nav>
+      <div className="main-content">
+        <aside className="left-panel">
+          <ul className="leftpanel-animated">
+            <Link to="/home" style={{ textDecoration: "none" }}>
+              <li style={{ "--i": "#a955ff", "--j": "#ea51ff" }}>
+                <div className="icon">
+                  <i className="bi bi-house"></i>
+                </div>
+                <span className="title">{t("home.tabs.home")}</span>
+              </li>
+            </Link>
 
-                    <Link to="/search" style={{ textDecoration: 'none' }}>
-                        <li style={{ '--i': '#56CCF2', '--j': '#2F80ED' }}>
-                            <div className="icon"><i className="bi bi-search"></i></div>
-                            <span className="title">{t('home.tabs.search')}</span>
-                        </li>
-                    </Link>
+            <Link to="/search" style={{ textDecoration: "none" }}>
+              <li style={{ "--i": "#56CCF2", "--j": "#2F80ED" }}>
+                <div className="icon">
+                  <i className="bi bi-search"></i>
+                </div>
+                <span className="title">{t("home.tabs.search")}</span>
+              </li>
+            </Link>
 
-                    <Link to="/room" style={{ textDecoration: 'none' }}>
-                        <li style={{ '--i': '#80FF72', '--j': '#7EE8FA' }}>
-                            <div className="icon"><i className="bi bi-tv"></i></div>
-                            <span className="title">{t('home.tabs.room')}</span>
-                        </li>
-                    </Link>
+            <Link to="/room" style={{ textDecoration: "none" }}>
+              <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
+                <div className="icon">
+                  <i className="bi bi-tv"></i>
+                </div>
+                <span className="title">{t("home.tabs.room")}</span>
+              </li>
+            </Link>
 
-                    <Link to="/dm" style={{ textDecoration: 'none' }}>
-                        <li style={{ '--i': '#ffa9c6', '--j': '#f434e2' }}>
-                            <div className="icon"><i className="bi bi-chat-dots"></i></div>
-                            <span className="title">{t('home.tabs.dm')}</span>
-                        </li>
-                    </Link>
+            <Link to="/community" style={{ textDecoration: "none" }}>
+              <li style={{ "--i": "#ff9ad5", "--j": "#ffd1ea" }}>
+                <div className="icon">
+                  <i className="bi bi-people"></i>
+                </div>
+                <span className="title">Community</span>
+              </li>
+            </Link>
 
-                    <Link to="/notification" style={{ textDecoration: 'none' }}>
-                        <li style={{ '--i': '#f6d365', '--j': '#fda085' }}>
-                            <div className="icon"><i className="bi bi-bell"></i></div>
-                            <span className="title">{t('home.tabs.notification')}</span>
-                        </li>
-                    </Link>
+            <Link to="/dm" style={{ textDecoration: "none" }}>
+              <li style={{ "--i": "#ffa9c6", "--j": "#f434e2" }}>
+                <div className="icon">
+                  <i className="bi bi-chat-dots"></i>
+                </div>
+                <span className="title">{t("home.tabs.dm")}</span>
+              </li>
+            </Link>
 
-                    <Link to="/settings" style={{ textDecoration: 'none' }}>
-                        <li style={{ '--i': '#84fab0', '--j': '#8fd3f4' }}>
-                            <div className="icon"><i className="bi bi-gear"></i></div>
-                            <span className="title">{t('home.tabs.settings')}</span>
-                        </li>
-                    </Link>
+            <Link to="/notification" style={{ textDecoration: "none" }}>
+              <li style={{ "--i": "#f6d365", "--j": "#fda085" }}>
+                <div className="notification-icon-wrapper">
+                  <i className="bi bi-bell"></i>
+                  {hasUnread && <span className="notif-dot"></span>}
+                </div>
+                <span className="title">{t("home.tabs.notification")}</span>
+              </li>
+            </Link>
 
-                    <Link to={`/profile/${username}`} style={{ textDecoration: 'none' }}>
-                        <li style={{ '--i': '#c471f5', '--j': '#fa71cd' }}>
-                            <div className="icon"><i className="bi bi-person"></i></div>
-                            <span className="title">{t('home.tabs.profile')}</span>
-                        </li>
-                    </Link>
-                </ul>
-            </aside>
+            <Link to="/settings" style={{ textDecoration: "none" }}>
+              <li style={{ "--i": "#84fab0", "--j": "#8fd3f4" }}>
+                <div className="icon">
+                  <i className="bi bi-gear"></i>
+                </div>
+                <span className="title">{t("home.tabs.settings")}</span>
+              </li>
+            </Link>
 
-            <section className='feed'>
+            <Link
+              to={`/profile/${username}`}
+              style={{ textDecoration: "none" }}
+            >
+              <li style={{ "--i": "#c471f5", "--j": "#fa71cd" }}>
+                <div className="icon">
+                  <i className="bi bi-person"></i>
+                </div>
+                <span className="title">{t("home.tabs.profile")}</span>
+              </li>
+            </Link>
+          </ul>
+        </aside>
+
+        <section className="feed">
           {rooms.map((tabName, index) => (
             <div
               key={index}
-              className='room-tab'
+              className="room-tab"
               onClick={() => handleTabClick(tabName)}
             >
               {selectedRoom === tabName ? (
-                <div className='popup-box-inline'>
-                  <h3>{t('room.enter')} {tabName}</h3>
-                  <p>{t('room.joinPrompt')}</p>
-                  <div className='popup-options'>
-                    <button onClick={() => navigate(`/room/${tabName}`)}>
-                      {t('room.textChat')}
+                <div className="popup-box-inline">
+                  <h3>
+                    {t("room.enter")} {tabName}
+                  </h3>
+                  <p>{t("room.joinPrompt")}</p>
+                  <div className="popup-options">
+                    <button
+                      onClick={() =>
+                        navigate(`/room/${tabName}`, {
+                          state: { from: "/room" },
+                        })
+                      }
+                    >
+                      {t("room.textChat")}
                     </button>
                     <button onClick={() => handleStreamRoomClick(tabName)}>
-                      {t('room.streamRoom')}
+                      {t("room.streamRoom")}
                     </button>
                   </div>
                   <button
-                    className='popup-close'
+                    className="popup-close"
                     onClick={() => setSelectedRoom(null)}
                   >
-                    {t('room.close')}
+                    {t("room.close")}
                   </button>
                 </div>
               ) : (
@@ -296,116 +350,129 @@ const handleVote = async (id, type) => {
               <div key={s.id} className="suggestion-item">
                 <p>{s.text}</p>
                 <div className="votes">
-                  <button onClick={() => handleVote(s.id, "yes")}>👍 {s.yes_count}</button>
-                  <button onClick={() => handleVote(s.id, "no")}>👎 {s.no_count}</button>
+                  <button onClick={() => handleVote(s.id, "yes")}>
+                    👍 {s.yes_count}
+                  </button>
+                  <button onClick={() => handleVote(s.id, "no")}>
+                    👎 {s.no_count}
+                  </button>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className='suggestion-box'>
+          <div className="suggestion-box">
             <h3>Drop a Suggestion 💬</h3>
             <textarea
-              placeholder='Write your idea, topic or thought here...'
+              placeholder="Write your idea, topic or thought here..."
               value={suggestionText}
               onChange={(e) => setSuggestionText(e.target.value)}
-              className='suggestion-input'
+              className="suggestion-input"
             />
             <button
-              className='suggestion-submit'
+              className="suggestion-submit"
               onClick={handleSuggestionSend}
             >
               Send
             </button>
           </div>
-
         </section>
-        
-            <aside className="right-panel">
-                        <p className="welcome-text">
-                            {t('home.greeting')}
-                        </p>
 
-                        <div className="reach-out">
-                        <span>{t('home.reachOut')}</span>
-                        <a 
-                            href="https://instagram.com/yourusername" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="insta-btn"
-                        >
-                        <i className="bi bi-instagram"></i>
-                        </a>
-                        </div>
-                    </aside>
-        </div>
+        <aside className="right-panel">
+          <p className="welcome-text">{t("home.greeting")}</p>
 
-        {/* Stream Room Modal */}
-        <StreamRoomModal
-          isOpen={showStreamModal}
-          onClose={() => setShowStreamModal(false)}
-          onCreateRoom={handleCreateRoom}
-          onJoinRoom={handleJoinRoom}
-          roomName={selectedStreamRoom}
-        />
-        <nav className="mobile-bottom-nav">
-                <Link to="/home" style={{ textDecoration: "none" }}>
-                  <li style={{ "--i": "#a955ff", "--j": "#ea51ff" }}>
-                    <div className="icon">
-                      <i className="bi bi-house"></i>
-                    </div>
-                    <span className="title">{t("home.tabs.home")}</span>
-                  </li>
-                </Link>
-                <Link to="/search" style={{ textDecoration: "none" }}>
-                  <li style={{ "--i": "#56CCF2", "--j": "#2F80ED" }}>
-                    <div className="icon">
-                      <i className="bi bi-search"></i>
-                    </div>
-                    <span className="title">{t("home.tabs.search")}</span>
-                  </li>
-                </Link>
-                <Link to="/room" style={{ textDecoration: "none" }}>
-                  <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
-                    <div className="icon">
-                      <i className="bi bi-tv"></i>
-                    </div>
-                    <span className="title">{t("home.tabs.room")}</span>
-                  </li>
-                </Link>
-                <Link to="/dm" style={{ textDecoration: "none" }}>
-                  <li style={{ "--i": "#ffa9c6", "--j": "#f434e2" }}>
-                    <div className="icon">
-                      <i className="bi bi-chat-dots"></i>
-                    </div>
-                    <span className="title">{t("home.tabs.dm")}</span>
-                  </li>
-                </Link>
-                <Link to="/notification" style={{ textDecoration: "none" }}>
-                  <li style={{ "--i": "#f6d365", "--j": "#fda085" }}>
-                    <div className="icon">
-                      <i className="bi bi-bell"></i>
-                    </div>
-                    <span className="title">{t("home.tabs.notification")}</span>
-                  </li>
-                </Link>
-                <Link to="/settings" style={{ textDecoration: "none" }}>
-                  <li style={{ "--i": "#84fab0", "--j": "#8fd3f4" }}>
-                    <div className="icon">
-                      <i className="bi bi-gear"></i>
-                    </div>
-                    <span className="title">{t("home.tabs.settings")}</span>
-                  </li>
-                </Link>
-                <Link to={`/profile/${username}`} style={{ textDecoration: 'none' }}>
-                                        <li style={{ '--i': '#c471f5', '--j': '#fa71cd' }}>
-                                            <div className="icon"><i className="bi bi-person"></i></div>
-                                            <span className="title">{t('home.tabs.profile')}</span>
-                                        </li>
-                                    </Link>
-              </nav>
-        </div>
-    )
+          <div className="reach-out">
+            <span>{t("home.reachOut")}</span>
+            <a
+              href="https://instagram.com/yourusername"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="insta-btn"
+            >
+              <i className="bi bi-instagram"></i>
+            </a>
+          </div>
+        </aside>
+      </div>
+
+      {/* Stream Room Modal */}
+      <StreamRoomModal
+        isOpen={showStreamModal}
+        onClose={() => setShowStreamModal(false)}
+        onCreateRoom={handleCreateRoom}
+        onJoinRoom={handleJoinRoom}
+        roomName={selectedStreamRoom}
+      />
+
+      <nav className="mobile-bottom-nav">
+        <Link to="/home" style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#a955ff", "--j": "#ea51ff" }}>
+            <div className="icon">
+              <i className="bi bi-house"></i>
+            </div>
+            <span className="title">{t("home.tabs.home")}</span>
+          </li>
+        </Link>
+        <Link to="/search" style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#56CCF2", "--j": "#2F80ED" }}>
+            <div className="icon">
+              <i className="bi bi-search"></i>
+            </div>
+            <span className="title">{t("home.tabs.search")}</span>
+          </li>
+        </Link>
+        <Link to="/room" style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
+            <div className="icon">
+              <i className="bi bi-tv"></i>
+            </div>
+            <span className="title">{t("home.tabs.room")}</span>
+          </li>
+        </Link>
+        <Link to="/community" style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#ff9ad5", "--j": "#ffd1ea" }}>
+            <div className="icon">
+              <i className="bi bi-people"></i>
+            </div>
+            <span className="title">Community</span>
+          </li>
+        </Link>
+        <Link to="/dm" style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#ffa9c6", "--j": "#f434e2" }}>
+            <div className="icon">
+              <i className="bi bi-chat-dots"></i>
+            </div>
+            <span className="title">{t("home.tabs.dm")}</span>
+          </li>
+        </Link>
+        <Link to="/notification" style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#f6d365", "--j": "#fda085" }}>
+            <div className="notification-icon-wrapper">
+              <i className="bi bi-bell"></i>
+              {hasUnread && <span className="notif-dot"></span>}
+            </div>
+            <span className="title">{t("home.tabs.notification")}</span>
+          </li>
+        </Link>
+        <Link to="/settings" style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#84fab0", "--j": "#8fd3f4" }}>
+            <div className="icon">
+              <i className="bi bi-gear"></i>
+            </div>
+            <span className="title">{t("home.tabs.settings")}</span>
+          </li>
+        </Link>
+        <Link to={`/profile/${username}`} style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#c471f5", "--j": "#fa71cd" }}>
+            <div className="icon">
+              <i className="bi bi-person"></i>
+            </div>
+            <span className="title">{t("home.tabs.profile")}</span>
+          </li>
+        </Link>
+      </nav>
+    </div>
+  );
 }
 
 export default Room;

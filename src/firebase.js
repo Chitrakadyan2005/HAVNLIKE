@@ -1,13 +1,19 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
-
 const firebaseConfig = {
+<<<<<<< HEAD
   apiKey: "",
   authDomain: "havnlike.firebaseapp.com",
   projectId: "havnlike",
+=======
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+>>>>>>> fcb4527 (added bots and moderation)
 };
 
 const app = initializeApp(firebaseConfig);
+
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();

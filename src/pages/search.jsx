@@ -11,6 +11,27 @@ function Search() {
   const [loading, setLoading] = useState(false);
   const { t } = useTranslation();
   const username = sessionStorage.getItem("username");
+  const [hasUnread, setHasUnread] = useState(false);
+
+  useEffect(() => {
+    const checkUnread = async () => {
+      const token = sessionStorage.getItem("token");
+      if (!token) return;
+
+      try {
+        const res = await fetch(`${API_URL}/api/notification/unread`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const data = await res.json();
+        setHasUnread(data.hasUnread);
+      } catch (err) {
+        console.error("Unread check failed", err);
+      }
+    };
+
+    checkUnread();
+  }, []);
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -94,6 +115,15 @@ function Search() {
               </li>
             </Link>
 
+            <Link to="/community" style={{ textDecoration: "none" }}>
+              <li style={{ "--i": "#ff9ad5", "--j": "#ffd1ea" }}>
+                <div className="icon">
+                  <i className="bi bi-people"></i>
+                </div>
+                <span className="title">Community</span>
+              </li>
+            </Link>
+
             <Link to="/dm" style={{ textDecoration: "none" }}>
               <li style={{ "--i": "#ffa9c6", "--j": "#f434e2" }}>
                 <div className="icon">
@@ -105,8 +135,9 @@ function Search() {
 
             <Link to="/notification" style={{ textDecoration: "none" }}>
               <li style={{ "--i": "#f6d365", "--j": "#fda085" }}>
-                <div className="icon">
+                <div className="notification-icon-wrapper">
                   <i className="bi bi-bell"></i>
+                  {hasUnread && <span className="notif-dot"></span>}
                 </div>
                 <span className="title">{t("home.tabs.notification")}</span>
               </li>
@@ -187,6 +218,7 @@ function Search() {
             ))}
           </div>
         </section>
+
         <aside className="right-panel">
           <p className="welcome-text">{t("home.greeting")}</p>
 
@@ -203,6 +235,7 @@ function Search() {
           </div>
         </aside>
       </div>
+
       <nav className="mobile-bottom-nav">
         <Link to="/home" style={{ textDecoration: "none" }}>
           <li style={{ "--i": "#a955ff", "--j": "#ea51ff" }}>
@@ -228,6 +261,14 @@ function Search() {
             <span className="title">{t("home.tabs.room")}</span>
           </li>
         </Link>
+        <Link to="/community" style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#ff9ad5", "--j": "#ffd1ea" }}>
+            <div className="icon">
+              <i className="bi bi-people"></i>
+            </div>
+            <span className="title">Community</span>
+          </li>
+        </Link>
         <Link to="/dm" style={{ textDecoration: "none" }}>
           <li style={{ "--i": "#ffa9c6", "--j": "#f434e2" }}>
             <div className="icon">
@@ -238,8 +279,9 @@ function Search() {
         </Link>
         <Link to="/notification" style={{ textDecoration: "none" }}>
           <li style={{ "--i": "#f6d365", "--j": "#fda085" }}>
-            <div className="icon">
+            <div className="notification-icon-wrapper">
               <i className="bi bi-bell"></i>
+              {hasUnread && <span className="notif-dot"></span>}
             </div>
             <span className="title">{t("home.tabs.notification")}</span>
           </li>

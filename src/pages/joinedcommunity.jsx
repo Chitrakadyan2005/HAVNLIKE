@@ -1,16 +1,17 @@
-import "../cssfiles/Home.css";
+import { useParams, Link } from "react-router-dom";
+import "../cssfiles/joinedcommunity.css";
 import "../cssfiles/layout.css";
 import React, { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
-import EmojiPicker from "emoji-picker-react";
 import { useTranslation } from "react-i18next";
 import API_URL from "../utils/api";
-import { checkModeration } from "../utils/moderateText";
+import EmojiPicker from "emoji-picker-react";
 import { getFreshToken } from "../utils/getToken";
+import { checkModeration } from "../utils/moderateText";
 
-function Home() {
+function JoinedCommunity() {
   const [posts, setPosts] = useState([]);
   const { t } = useTranslation();
+  const { communityId } = useParams();
 
   const username = sessionStorage.getItem("username");
 
@@ -52,42 +53,19 @@ function Home() {
     const fetchPosts = async () => {
       const token = await getFreshToken();
       if (!token) return;
-      try {
-        const res = await fetch(`${API_URL}/api/home/posts`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
 
-        if (!res.ok) {
-          const errorData = await res.json().catch(() => ({}));
-          throw new Error(
-            errorData.error || `HTTP error! status: ${res.status}`,
-          );
-        }
+      const res = await fetch(`${API_URL}/api/community/${communityId}/posts`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-        const data = await res.json();
-        const formattedPosts = data.map((post) => ({
-          id: post.id,
-          text: post.content,
-          user: post.username,
-          avatar_url: post.avatar_url || "/default-avatar.png",
-          time: new Date(post.created_at).toLocaleString(),
-          likesCount: Number(post.likecount || 0),
-          comments: post.comments || [],
-          commentCount: post.commentcount || 0,
-          likedByUser: post.likedByUser === true || post.likedByUser === "t",
-        }));
-
-        setPosts(formattedPosts);
-      } catch (err) {
-        console.error("Error fetching posts:", err);
-      }
+      const data = await res.json();
+      setPosts(data);
     };
 
     fetchPosts();
-  }, []);
+  }, [communityId]);
 
   // ================= CLICK OUTSIDE =================
   useEffect(() => {
@@ -136,13 +114,16 @@ function Home() {
     if (!token) return alert("Please login first.");
 
     try {
-      const res = await fetch(`${API_URL}/api/home/posts/${postId}/liked-posts`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+      const res = await fetch(
+        `${API_URL}/api/community/${communityId}/posts/${postId}/like`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         },
-      });
+      );
 
       if (!res.ok) {
         const errData = await res.json();
@@ -191,13 +172,16 @@ Please keep conversations respectful.`,
     }
 
     try {
-      const res = await fetch(`${API_URL}/api/home/posts`, {
+      const res = await fetch(`${API_URL}/api/community/${communityId}/posts`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ content: newPostText }),
+        body: JSON.stringify({
+          content: newPostText,
+          communityId,
+        }),
       });
 
       if (!res.ok) {
@@ -239,14 +223,17 @@ Please keep conversations respectful.`,
     if (!editText.trim() || !token) return;
 
     try {
-      const res = await fetch(`${API_URL}/api/home/posts/${postId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const res = await fetch(
+        `${API_URL}/api/community/${communityId}/posts/${postId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ content: editText }),
         },
-        body: JSON.stringify({ content: editText }),
-      });
+      );
 
       if (!res.ok) throw new Error("Failed to update post");
 
@@ -273,12 +260,15 @@ Please keep conversations respectful.`,
     if (!confirmDelete) return;
 
     try {
-      const res = await fetch(`${API_URL}/api/home/posts/${postId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const res = await fetch(
+        `${API_URL}/api/community/${communityId}/posts/${postId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
 
       if (!res.ok) throw new Error("Failed to delete post");
 
@@ -316,14 +306,17 @@ Please keep conversations respectful.`,
     }
 
     try {
-      const res = await fetch(`${API_URL}/api/home/posts/${postId}/comment`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const res = await fetch(
+        `${API_URL}/api/community/${communityId}/posts/${postId}/comment`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ text }),
         },
-        body: JSON.stringify({ text }),
-      });
+      );
 
       if (!res.ok) throw new Error("Failed to add comment");
 
@@ -460,6 +453,16 @@ Please keep conversations respectful.`,
         </aside>
 
         <section className="feed">
+          <div className="community-header">
+            <h2>#{communityId.replace("-", " ")}</h2>
+
+            <Link
+              to={`/room/community-${communityId}`}
+              state={{ from: `/community/${communityId}` }}
+            >
+              <button className="live-chat-btn">💬 Live Chat</button>
+            </Link>
+          </div>
           <div className="feed-container">
             {posts.map((post) => (
               <div className="post" key={post.id}>
@@ -749,4 +752,4 @@ Please keep conversations respectful.`,
   );
 }
 
-export default Home;
+export default JoinedCommunity;

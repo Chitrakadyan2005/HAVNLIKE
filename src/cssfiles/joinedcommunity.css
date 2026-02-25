@@ -1,0 +1,167 @@
+/* ===== JOINED COMMUNITY PAGE ONLY ===== */
+
+/* Make feed more solid than other pages */
+.feed {
+  background: rgba(255, 255, 255, 0.88); /* less transparent */
+  border: 1px solid var(--rose-200);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 18px;
+}
+
+/* Header of community */
+.community-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--rose-200);
+}
+
+.community-header h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--pink-600);
+  text-transform: capitalize;
+}
+
+/* Live chat button */
+.live-chat-btn {
+  background: linear-gradient(135deg, var(--pink-400), var(--pink-600));
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+
+.live-chat-btn:hover {
+  background: linear-gradient(135deg, var(--pink-500), var(--pink-600));
+}
+
+/* ===== POSTS ===== */
+
+.post {
+  background: rgba(255, 255, 255, 0.95); /* almost solid */
+  border: 1px solid var(--rose-200);
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 16px;
+  box-shadow: 0 6px 20px rgba(255, 105, 180, 0.12);
+}
+
+/* Post header */
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.post-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  margin-right: 8px;
+  object-fit: cover;
+}
+
+.post-header h3 {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Post body */
+.post-body p {
+  margin-top: 10px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text-700);
+}
+
+/* Actions */
+.post-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  color: var(--text-500);
+}
+
+.post-actions i.liked {
+  color: hotpink;
+}
+
+/* ===== COMMENTS ===== */
+
+.comment-section {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--rose-200);
+}
+
+.comment-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.comment-box input {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--rose-200);
+  outline: none;
+}
+
+.send-icon {
+  color: var(--pink-500);
+}
+
+/* Replies */
+.comment-replies {
+  margin-top: 8px;
+  padding-left: 12px;
+}
+
+.single-comment {
+  font-size: 13px;
+  margin-bottom: 6px;
+  color: var(--text-700);
+}
+
+/* ===== ADD POST BUTTON ===== */
+
+.add-post-bottom {
+  position: sticky;
+  bottom: 10px;
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.add-post-btn {
+  background: linear-gradient(135deg, var(--pink-400), var(--pink-600));
+  color: white;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+
+.add-post-btn:hover {
+  background: linear-gradient(135deg, var(--pink-500), var(--pink-600));
+}
+
+/* ===== MODAL POST BOX ===== */
+
+.popup-post-box {
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 18px;
+  padding: 16px;
+  border: 1px solid var(--rose-200);
+  box-shadow: var(--shadow);
+}

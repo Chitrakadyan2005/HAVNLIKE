@@ -1,0 +1,129 @@
+/* ===== COMMUNITY FEED ===== */
+
+.community-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  padding: 10px;
+}
+
+/* ===== COMMUNITY CARD ===== */
+
+.community-card {
+  background: white;
+  border-radius: 18px;
+  padding: 22px 20px;
+  box-shadow: 0 8px 20px rgba(255, 105, 180, 0.08);
+  border: 1px solid #ffe1ee;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  position: relative;
+}
+
+.community-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 28px rgba(255, 105, 180, 0.18);
+}
+
+/* ===== TITLE ===== */
+
+.community-card h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #c2185b; /* deep pink */
+  margin-bottom: 8px;
+}
+
+/* ===== DESCRIPTION ===== */
+
+.community-desc {
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.45;
+  margin-bottom: 18px;
+}
+
+/* ===== ACTION BUTTONS ===== */
+
+.community-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.community-actions button {
+  flex: 1;
+  height: 42px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  white-space: nowrap;
+}
+
+/* PRIMARY CTA */
+
+.join-btn {
+  background: linear-gradient(135deg, #ff8fb1, #ff5f9e);
+  color: white;
+  box-shadow: 0 6px 14px rgba(255, 95, 158, 0.25);
+}
+
+.join-btn:hover {
+  background: linear-gradient(135deg, #ff5f9e, #e91e63);
+  color: white;
+  transform: translateY(-2px) scale(1.02);
+  box-shadow:
+    0 12px 26px rgba(233, 30, 99, 0.45),
+    0 0 0 2px rgba(255, 95, 158, 0.35);
+}
+
+/* SECONDARY CTA */
+.bot-btn {
+  background: white;
+  color: #c2185b;
+  border: 1.6px solid #ce3e75;
+  box-shadow: 0 4px 10px rgba(194, 24, 91, 0.08);
+}
+
+.bot-btn:hover {
+  background: #fff5f9;
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 18px rgba(194, 24, 91, 0.18),
+    inset 0 0 0 1px rgba(194, 24, 91, 0.25);
+}
+
+/* ===== MOBILE FIXES ===== */
+
+@media (max-width: 600px) {
+  .community-grid {
+    gap: 16px;
+    padding: 6px;
+  }
+
+  .community-card {
+    padding: 18px 16px;
+    border-radius: 16px;
+  }
+
+  .community-card h3 {
+    font-size: 1.1rem;
+  }
+
+  .community-desc {
+    font-size: 0.9rem;
+  }
+
+  .community-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .community-actions button {
+    width: 100%;
+    height: 44px;
+    font-size: 0.95rem;
+  }
+}

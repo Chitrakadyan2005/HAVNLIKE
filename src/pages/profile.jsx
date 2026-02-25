@@ -12,7 +12,6 @@ function Profile() {
   const { t } = useTranslation();
 
   const getToken = () => sessionStorage.getItem("token");
-  const [myProfile, setMyProfile] = useState(null);
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -31,6 +30,7 @@ function Profile() {
   const [editUsername, setEditUsername] = useState("");
   const [profileViewMode, setProfileViewMode] = useState(null);
   const [activityPosts, setActivityPosts] = useState([]);
+  const [followPending, setFollowPending] = useState(false);
 
   const presetAvatars = [
     "/pfps/default.png",
@@ -55,6 +55,28 @@ function Profile() {
     if (url.startsWith("/")) return url;
     return `/pfps/${url}`;
   };
+
+  const [hasUnread, setHasUnread] = useState(false);
+
+  useEffect(() => {
+    const checkUnread = async () => {
+      const token = sessionStorage.getItem("token");
+      if (!token) return;
+
+      try {
+        const res = await fetch(`${API_URL}/api/notification/unread`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const data = await res.json();
+        setHasUnread(data.hasUnread);
+      } catch (err) {
+        console.error("Unread check failed", err);
+      }
+    };
+
+    checkUnread();
+  }, []);
 
   // Logged-in username
   useEffect(() => {
@@ -96,7 +118,7 @@ function Profile() {
 
       if (loggedInUsername !== username.toLowerCase()) {
         const followRes = await fetch(
-          `${API_URL}/api/profile/is-Following/${data.id}`,
+          `${API_URL}/api/profile/is-following/${data.id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -107,6 +129,7 @@ function Profile() {
         if (followRes.ok) {
           const followData = await followRes.json();
           setIsFollowing(followData.isFollowing);
+          setFollowPending(followData.isPending);
         }
       }
     } catch (err) {
@@ -114,39 +137,13 @@ function Profile() {
     }
   };
 
-  const fetchMyProfile = async () => {
-    try {
-      const token = getToken();
-      if (!token) return;
-
-      const res = await fetch(`${API_URL}/api/auth/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!res.ok) return;
-
-      const data = await res.json();
-      setMyProfile(data.user);
-    } catch (err) {
-      console.error("Error fetching my profile:", err);
-    }
-  };
-
   useEffect(() => {
     if (!loggedInUsername) return;
 
-    fetchMyProfile();
     fetchUserProfile();
   }, [loggedInUsername, username]);
 
   const handleSelectAvatar = async (url) => {
-    setMyProfile((prev) => ({
-      ...(prev || {}),
-      avatarUrl: url,
-    }));
-
     setShowAvatarOptions(false);
 
     try {
@@ -163,6 +160,11 @@ function Profile() {
       });
 
       if (!res.ok) throw new Error("Unauthorized");
+
+      const updated = await res.json();
+      setProfile(updated);
+      setPosts(updated.posts || []);
+      setFollowersCount(updated.stats?.followers || 0);
     } catch (err) {
       console.error("Avatar update failed:", err);
     }
@@ -187,20 +189,44 @@ function Profile() {
       });
 
       if (res.ok) {
-        const data = await res.json();
-        setMyProfile((prev) => ({
-          ...(prev || {}),
-          avatarUrl: data.avatarUrl,
-        }));
+        const updated = await res.json();
+        setProfile(updated);
+        setPosts(updated.posts || []);
+        setFollowersCount(updated.stats?.followers || 0);
       }
     } catch (err) {
       console.error("Failed to upload avatar:", err);
     }
   };
 
-  const handleMessage = () => {
-    navigate(`/dm/chatpage/${profile.id}/${username}`);
+  const handleMessage = async () => {
+    try {
+      const token = getToken();
+      if (!token || !profile?.id) return;
+
+      const res = await fetch(`${API_URL}/api/dm/can-dm/${profile.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.status === 403) {
+        const data = await res.json();
+
+        if (data.requestRequired) {
+          alert("DM request sent. Wait for approval 💬");
+          return;
+        }
+      }
+
+      if (!res.ok) {
+        throw new Error("Cannot message this user");
+      }
+
+      navigate(`/dm/chatpage/${profile.id}/${username}`);
+    } catch (err) {
+      console.error("DM check failed", err);
+    }
   };
+
   const toggleMenu = (postId) => {
     setOpenMenu((prev) => (prev === postId ? null : postId));
   };
@@ -271,23 +297,40 @@ function Profile() {
   const handleFollow = async () => {
     try {
       const token = getToken();
-      if (!token) return;
+      if (!token || !profile?.id) return;
+
       const url = isFollowing
         ? `${API_URL}/api/profile/unfollow/${profile.id}`
         : `${API_URL}/api/profile/follow/${profile.id}`;
+
       const res = await fetch(url, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-      if (res.ok) {
-        const data = await res.json();
-        setIsFollowing(!isFollowing);
+
+      if (!res.ok) return;
+
+      const data = await res.json();
+
+      if (!isFollowing && data.status === "pending") {
+        alert("Follow request sent ⏳");
+        setIsFollowing(false);
+        setFollowPending(true);
+        return;
+      }
+
+      if (!isFollowing && data.status === "accepted") {
+        setIsFollowing(true);
+        setFollowersCount(data.targetFollowerCount);
+        return;
+      }
+
+      if (isFollowing) {
+        setIsFollowing(false);
         setFollowersCount(data.targetFollowerCount);
       }
     } catch (err) {
-      console.error("Follow toggle failed:", err);
+      console.error("Follow / unfollow failed:", err);
     }
   };
 
@@ -394,8 +437,7 @@ function Profile() {
       }
 
       const updated = await res.json();
-
-      setMyProfile(updated);
+      setProfile(updated);
       sessionStorage.setItem("username", updated.username);
       navigate(`/profile/${updated.username}`);
       setShowEditModal(false);
@@ -443,6 +485,14 @@ function Profile() {
                 <span className="title">{t("home.tabs.room")}</span>
               </li>
             </Link>
+            <Link to="/community" style={{ textDecoration: "none" }}>
+              <li style={{ "--i": "#ff9ad5", "--j": "#ffd1ea" }}>
+                <div className="icon">
+                  <i className="bi bi-people"></i>
+                </div>
+                <span className="title">Community</span>
+              </li>
+            </Link>
             <Link to="/dm" style={{ textDecoration: "none" }}>
               <li style={{ "--i": "#ffa9c6", "--j": "#f434e2" }}>
                 <div className="icon">
@@ -453,8 +503,9 @@ function Profile() {
             </Link>
             <Link to="/notification" style={{ textDecoration: "none" }}>
               <li style={{ "--i": "#f6d365", "--j": "#fda085" }}>
-                <div className="icon">
+                <div className="notification-icon-wrapper">
                   <i className="bi bi-bell"></i>
+                  {hasUnread && <span className="notif-dot"></span>}
                 </div>
                 <span className="title">{t("home.tabs.notification")}</span>
               </li>
@@ -483,7 +534,7 @@ function Profile() {
 
         <section className="feed">
           <div className="profile-header">
-            {isOwnProfile && myProfile && (
+            {isOwnProfile && profile && (
               <div className="profile-menu">
                 <i
                   className="bi bi-three-dots-vertical"
@@ -541,7 +592,7 @@ function Profile() {
                   onError={(e) => (e.target.src = "/pfps/default.png")}
                 />
 
-                {isOwnProfile && myProfile && (
+                {isOwnProfile && profile && (
                   <div
                     className="add-avatar-btn"
                     onClick={() => setShowAvatarOptions(!showAvatarOptions)}
@@ -620,10 +671,17 @@ function Profile() {
                     Message
                   </button>
                   <button
-                    className={`follow-button ${isFollowing ? "following" : ""}`}
+                    className={`follow-button ${
+                      isFollowing ? "following" : followPending ? "pending" : ""
+                    }`}
                     onClick={handleFollow}
+                    disabled={followPending}
                   >
-                    {isFollowing ? "Following" : "Follow"}
+                    {isFollowing
+                      ? "Following"
+                      : followPending
+                        ? "Requested"
+                        : "Follow"}
                   </button>
                 </div>
               )}
@@ -645,7 +703,7 @@ function Profile() {
                   posts.map((post) => (
                     <div className="grid-post" key={post.id}>
                       <div className="grid-post-header">
-                        {isOwnProfile && myProfile && (
+                        {isOwnProfile && profile && (
                           <div className="post-menu">
                             <i
                               className="bi bi-three-dots"
@@ -832,6 +890,7 @@ function Profile() {
           </div>
         </aside>
       </div>
+
       <nav className="mobile-bottom-nav">
         <Link to="/home" style={{ textDecoration: "none" }}>
           <li style={{ "--i": "#a955ff", "--j": "#ea51ff" }}>
@@ -857,6 +916,14 @@ function Profile() {
             <span className="title">{t("home.tabs.room")}</span>
           </li>
         </Link>
+        <Link to="/community" style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#ff9ad5", "--j": "#ffd1ea" }}>
+            <div className="icon">
+              <i className="bi bi-people"></i>
+            </div>
+            <span className="title">Community</span>
+          </li>
+        </Link>
         <Link to="/dm" style={{ textDecoration: "none" }}>
           <li style={{ "--i": "#ffa9c6", "--j": "#f434e2" }}>
             <div className="icon">
@@ -867,8 +934,9 @@ function Profile() {
         </Link>
         <Link to="/notification" style={{ textDecoration: "none" }}>
           <li style={{ "--i": "#f6d365", "--j": "#fda085" }}>
-            <div className="icon">
+            <div className="notification-icon-wrapper">
               <i className="bi bi-bell"></i>
+              {hasUnread && <span className="notif-dot"></span>}
             </div>
             <span className="title">{t("home.tabs.notification")}</span>
           </li>

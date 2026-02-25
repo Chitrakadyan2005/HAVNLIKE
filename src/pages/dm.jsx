@@ -1,247 +1,358 @@
-import React,{useEffect, useState} from "react";
-import '../cssfiles/layout.css';
-import '../cssfiles/dm.css';
-import { Link, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import React, { useEffect, useState } from "react";
+import "../cssfiles/layout.css";
+import "../cssfiles/dm.css";
+import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import socket from "../socket";
-import API_URL from '../utils/api';
+import API_URL from "../utils/api";
 
-function Dm(){
-    const[conversations, setConversations] = useState([]);
-    const[query, setQuery] = useState('');
-    const navigate = useNavigate();
-    const { t } = useTranslation();
-    const username = sessionStorage.getItem("username");
+function Dm() {
+  const [conversations, setConversations] = useState([]);
+  const [query, setQuery] = useState("");
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+  const [username, setUsername] = useState(null);
+  const [userId, setUserId] = useState(null);
+  const [showDmRequestModal, setShowDmRequestModal] = useState(false);
+  const [hasUnread, setHasUnread] = useState(false);
 
-    const handleChatClick = (chatUser) => {
-    // Navigate to chat page with that user's ID and username
-    navigate(`/dm/chatpage/${chatUser.id}/${chatUser.username}`);
-  };
+  useEffect(() => {
+    const checkUnread = async () => {
+      const token = sessionStorage.getItem("token");
+      if (!token) return;
 
+      try {
+        const res = await fetch(`${API_URL}/api/notification/unread`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
- useEffect(() => {
-  // Join DM room for current user
-  socket.emit('join-dm', username);
+        const data = await res.json();
+        setHasUnread(data.hasUnread);
+      } catch (err) {
+        console.error("Unread check failed", err);
+      }
+    };
 
-  // Listen for new DM messages
-  socket.on('receive-dm', (msg) => {
-    setConversations(prev => {
-      const idx = prev.findIndex(c => c.username === (msg.from === username ? msg.to : msg.from));
-      if (idx !== -1) {
-        // Update existing conversation
-        const updated = [...prev];
-        updated[idx].lastMessage = msg.text;
-        updated[idx].time = msg.timestamp || new Date().toLocaleTimeString();
-        return updated;
-      } 
-      // New conversation
-      return [{ username: msg.from === username ? msg.to : msg.from, lastMessage: msg.text, time: msg.timestamp, avatar: msg.avatar }, ...prev];
+    checkUnread();
+  }, []);
+
+  useEffect(() => {
+    const storedUsername = sessionStorage.getItem("username");
+    const storedUserId = sessionStorage.getItem("userId");
+
+    if (!storedUsername || !storedUserId) {
+      navigate("/login");
+      return;
+    }
+
+    setUsername(storedUsername);
+    setUserId(Number(storedUserId));
+  }, [navigate]);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    socket.emit("join-dm", userId);
+
+    socket.on("dm-error", (e) => {
+      if (e.requestRequired) {
+        alert("This user only accepts DMs from followers / mutuals");
+      }
     });
-  });
 
-  return () => socket.off('receive-dm');
-}, []);
+    socket.on("receive-dm", (msg) => {
+      setConversations((prev) => {
+        const otherUserId = msg.from === userId ? msg.to : msg.from;
 
-    useEffect(() => {
-  const fetchConversations = async () => {
-    try {
-      const token = sessionStorage.getItem('token');
-
-      const res = await fetch(`${API_URL}/api/dm/chat/list`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+        const idx = prev.findIndex((c) => c.id === otherUserId);
+        if (idx !== -1) {
+          const updated = [...prev];
+          updated[idx] = {
+            ...updated[idx],
+            lastMessage: msg.message,
+            time: msg.created_at || new Date().toLocaleTimeString(),
+          };
+          return updated;
         }
+
+        return [
+          {
+            id: otherUserId,
+            username: msg.otherUsername, // backend se bhejna hoga
+            lastMessage: msg.message,
+            time: msg.created_at,
+            avatar: msg.avatar,
+          },
+          ...prev,
+        ];
+      });
+    });
+
+    return () => {
+      socket.off("dm-error");
+      socket.off("receive-dm");
+    };
+  }, [userId]);
+
+  const handleOpenChat = async (conv) => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const res = await fetch(`${API_URL}/api/dm/can-dm/${conv.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!res.ok) {
-        throw new Error('Failed to fetch conversations');
+        const data = await res.json();
+        if (data.requestRequired) {
+          alert("This user only accepts messages from followers");
+          return;
+        }
+        throw new Error(data.error);
       }
 
-      const data = await res.json();
-      console.log('Conversations data:', data); // Debug log to see if avatars are coming
-      setConversations(data);
+      navigate(`/dm/chatpage/${conv.id}/${conv.username}`);
     } catch (err) {
-      console.error('Error fetching conversations: ', err);
+      alert(err.message);
     }
   };
-  fetchConversations();
-}, []);
 
+  useEffect(() => {
+    const fetchConversations = async () => {
+      try {
+        const token = sessionStorage.getItem("token");
 
+        const res = await fetch(`${API_URL}/api/dm/chat/list`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-  return(
-        <div className='dmPage'>
-        <img
-            src="https://i.pinimg.com/736x/64/5f/40/645f4034ce36c03a18e0211b0f6728c4.jpg"
-            alt="wallpaper"
-            className="bg-image"
-        />
+        if (!res.ok) {
+          throw new Error("Failed to fetch conversations");
+        }
 
-        <nav className='Navbar'>
-            {t('home.navbar')}
-        </nav>
-        <div className='main-content'>
-            <aside className='left-panel'>
-                <ul className='leftpanel-animated'>
-                    <Link to="/home" style={{ textDecoration: 'none' }}>
-                      <li style={{ '--i': '#a955ff', '--j': '#ea51ff' }}>
-                        <div className="icon"><i className="bi bi-house"></i></div>
-                        <span className="title">{t('home.tabs.home')}</span>
-                      </li>
-                    </Link>
-                                    
-                    <Link to="/search" style={{ textDecoration: 'none' }}>
-                      <li style={{ '--i': '#56CCF2', '--j': '#2F80ED' }}>
-                        <div className="icon"><i className="bi bi-search"></i></div>
-                        <span className="title">{t('home.tabs.search')}</span>
-                      </li>
-                    </Link>
-                                    
-                    <Link to="/room" style={{ textDecoration: 'none' }}>
-                      <li style={{ '--i': '#80FF72', '--j': '#7EE8FA' }}>
-                        <div className="icon"><i className="bi bi-tv"></i></div>
-                        <span className="title">{t('home.tabs.room')}</span>
-                      </li>
-                    </Link>
-                                    
-                    <Link to="/dm" style={{ textDecoration: 'none' }}>
-                      <li style={{ '--i': '#ffa9c6', '--j': '#f434e2' }}>
-                        <div className="icon"><i className="bi bi-chat-dots"></i></div>
-                        <span className="title">{t('home.tabs.dm')}</span>
-                      </li>
-                    </Link>
-                                    
-                    <Link to="/notification" style={{ textDecoration: 'none' }}>
-                      <li style={{ '--i': '#f6d365', '--j': '#fda085' }}>
-                        <div className="icon"><i className="bi bi-bell"></i></div>
-                        <span className="title">{t('home.tabs.notification')}</span>
-                      </li>
-                    </Link>
-                                    
-                    <Link to="/settings" style={{ textDecoration: 'none' }}>
-                      <li style={{ '--i': '#84fab0', '--j': '#8fd3f4' }}>
-                        <div className="icon"><i className="bi bi-gear"></i></div>
-                        <span className="title">{t('home.tabs.settings')}</span>
-                      </li>
-                    </Link>
-                                    
-                    <Link to={`/profile/${username}`} style={{ textDecoration: 'none' }}>
-                      <li style={{ '--i': '#c471f5', '--j': '#fa71cd' }}>
-                        <div className="icon"><i className="bi bi-person"></i></div>
-                        <span className="title">{t('home.tabs.profile')}</span>
-                      </li>
-                    </Link>
-                </ul>
-            </aside>
+        const data = await res.json();
+        console.log("Conversations data:", data); // Debug log to see if avatars are coming
+        setConversations(data);
+      } catch (err) {
+        console.error("Error fetching conversations: ", err);
+      }
+    };
+    fetchConversations();
+  }, []);
 
-            <section className="feed">
-  <h2 className="dm-heading">{t('dm.heading')}</h2>
-  <div className="chat-list">
-    {conversations
-      .filter(conv => 
-        conv?.username?.toLowerCase().includes(query.toLowerCase()) ||
-        conv?.lastMessage?.toLowerCase().includes(query.toLowerCase())
-      )
-      .map((conv, index) => (
-        <Link 
-          key={index} 
-          to={`/dm/chatpage/${conv.id}/${conv.username}`} 
-          className="chat-card"
-        >
-          <img 
-            src={conv.avatar || "/pfps/pfp1.jpg"} 
-            alt={conv.username}
-            className="chat-avatar"
-          />
-          <div className="chat-info">
-            <h4>{conv.username}</h4>
-            <p>{conv.lastMessage || t('dm.noMessages')}</p>
+  if (!username) return null;
+
+  return (
+    <div className="dmPage">
+      <img
+        src="https://i.pinimg.com/736x/64/5f/40/645f4034ce36c03a18e0211b0f6728c4.jpg"
+        alt="wallpaper"
+        className="bg-image"
+      />
+
+      <nav className="Navbar">{t("home.navbar")}</nav>
+      <div className="main-content">
+        <aside className="left-panel">
+          <ul className="leftpanel-animated">
+            <Link to="/home" style={{ textDecoration: "none" }}>
+              <li style={{ "--i": "#a955ff", "--j": "#ea51ff" }}>
+                <div className="icon">
+                  <i className="bi bi-house"></i>
+                </div>
+                <span className="title">{t("home.tabs.home")}</span>
+              </li>
+            </Link>
+
+            <Link to="/search" style={{ textDecoration: "none" }}>
+              <li style={{ "--i": "#56CCF2", "--j": "#2F80ED" }}>
+                <div className="icon">
+                  <i className="bi bi-search"></i>
+                </div>
+                <span className="title">{t("home.tabs.search")}</span>
+              </li>
+            </Link>
+
+            <Link to="/room" style={{ textDecoration: "none" }}>
+              <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
+                <div className="icon">
+                  <i className="bi bi-tv"></i>
+                </div>
+                <span className="title">{t("home.tabs.room")}</span>
+              </li>
+            </Link>
+
+            <Link to="/community" style={{ textDecoration: "none" }}>
+              <li style={{ "--i": "#ff9ad5", "--j": "#ffd1ea" }}>
+                <div className="icon">
+                  <i className="bi bi-people"></i>
+                </div>
+                <span className="title">Community</span>
+              </li>
+            </Link>
+
+            <Link to="/dm" style={{ textDecoration: "none" }}>
+              <li style={{ "--i": "#ffa9c6", "--j": "#f434e2" }}>
+                <div className="icon">
+                  <i className="bi bi-chat-dots"></i>
+                </div>
+                <span className="title">{t("home.tabs.dm")}</span>
+              </li>
+            </Link>
+
+            <Link to="/notification" style={{ textDecoration: "none" }}>
+              <li style={{ "--i": "#f6d365", "--j": "#fda085" }}>
+                <div className="notification-icon-wrapper">
+                  <i className="bi bi-bell"></i>
+                  {hasUnread && <span className="notif-dot"></span>}
+                </div>
+                <span className="title">{t("home.tabs.notification")}</span>
+              </li>
+            </Link>
+
+            <Link to="/settings" style={{ textDecoration: "none" }}>
+              <li style={{ "--i": "#84fab0", "--j": "#8fd3f4" }}>
+                <div className="icon">
+                  <i className="bi bi-gear"></i>
+                </div>
+                <span className="title">{t("home.tabs.settings")}</span>
+              </li>
+            </Link>
+
+            <Link
+              to={`/profile/${username}`}
+              style={{ textDecoration: "none" }}
+            >
+              <li style={{ "--i": "#c471f5", "--j": "#fa71cd" }}>
+                <div className="icon">
+                  <i className="bi bi-person"></i>
+                </div>
+                <span className="title">{t("home.tabs.profile")}</span>
+              </li>
+            </Link>
+          </ul>
+        </aside>
+
+        <section className="feed">
+          <h2 className="dm-heading">{t("dm.heading")}</h2>
+          <div className="chat-list">
+            {conversations
+              .filter(
+                (conv) =>
+                  conv?.username?.toLowerCase().includes(query.toLowerCase()) ||
+                  conv?.lastMessage
+                    ?.toLowerCase()
+                    .includes(query.toLowerCase()),
+              )
+              .map((conv, index) => (
+                <Link
+                  key={conv.id}
+                  className="chat-card"
+                  onClick={() => handleOpenChat(conv)}
+                >
+                  <img
+                    src={conv.avatar || "/pfps/pfp1.jpg"}
+                    alt={conv.username}
+                    className="chat-avatar"
+                  />
+                  <div className="chat-info">
+                    <h4>{conv.username}</h4>
+                    <p>{conv.lastMessage || t("dm.noMessages")}</p>
+                  </div>
+                  <span className="chat-time">{conv.time || t("dm.now")}</span>
+                </Link>
+              ))}
           </div>
-          <span className="chat-time">{conv.time || t('dm.now')}</span>
+        </section>
+
+        <aside className="right-panel">
+          <p className="welcome-text">{t("home.greeting")}</p>
+
+          <div className="reach-out">
+            <span>{t("home.reachOut")}</span>
+            <a
+              href="https://instagram.com/yourusername"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="insta-btn"
+            >
+              <i className="bi bi-instagram"></i>
+            </a>
+          </div>
+        </aside>
+      </div>
+
+      <nav className="mobile-bottom-nav">
+        <Link to="/home" style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#a955ff", "--j": "#ea51ff" }}>
+            <div className="icon">
+              <i className="bi bi-house"></i>
+            </div>
+            <span className="title">{t("home.tabs.home")}</span>
+          </li>
         </Link>
-      ))}
-  </div>
-</section>
-
-
-            <aside className="right-panel">
-                        <p className="welcome-text">
-                            {t('home.greeting')}
-                        </p>
-
-                        <div className="reach-out">
-                        <span>{t('home.reachOut')}</span>
-                        <a 
-                            href="https://instagram.com/yourusername" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="insta-btn"
-                        >
-                        <i className="bi bi-instagram"></i>
-                        </a>
-                        </div>
-                    </aside>
-        </div>
-        <nav className="mobile-bottom-nav">
-                <Link to="/home" style={{ textDecoration: "none" }}>
-                  <li style={{ "--i": "#a955ff", "--j": "#ea51ff" }}>
-                    <div className="icon">
-                      <i className="bi bi-house"></i>
-                    </div>
-                    <span className="title">{t("home.tabs.home")}</span>
-                  </li>
-                </Link>
-                <Link to="/search" style={{ textDecoration: "none" }}>
-                  <li style={{ "--i": "#56CCF2", "--j": "#2F80ED" }}>
-                    <div className="icon">
-                      <i className="bi bi-search"></i>
-                    </div>
-                    <span className="title">{t("home.tabs.search")}</span>
-                  </li>
-                </Link>
-                <Link to="/room" style={{ textDecoration: "none" }}>
-                  <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
-                    <div className="icon">
-                      <i className="bi bi-tv"></i>
-                    </div>
-                    <span className="title">{t("home.tabs.room")}</span>
-                  </li>
-                </Link>
-                <Link to="/dm" style={{ textDecoration: "none" }}>
-                  <li style={{ "--i": "#ffa9c6", "--j": "#f434e2" }}>
-                    <div className="icon">
-                      <i className="bi bi-chat-dots"></i>
-                    </div>
-                    <span className="title">{t("home.tabs.dm")}</span>
-                  </li>
-                </Link>
-                <Link to="/notification" style={{ textDecoration: "none" }}>
-                  <li style={{ "--i": "#f6d365", "--j": "#fda085" }}>
-                    <div className="icon">
-                      <i className="bi bi-bell"></i>
-                    </div>
-                    <span className="title">{t("home.tabs.notification")}</span>
-                  </li>
-                </Link>
-                <Link to="/settings" style={{ textDecoration: "none" }}>
-                  <li style={{ "--i": "#84fab0", "--j": "#8fd3f4" }}>
-                    <div className="icon">
-                      <i className="bi bi-gear"></i>
-                    </div>
-                    <span className="title">{t("home.tabs.settings")}</span>
-                  </li>
-                </Link>
-                <Link to={`/profile/${username}`} style={{ textDecoration: 'none' }}>
-                                        <li style={{ '--i': '#c471f5', '--j': '#fa71cd' }}>
-                                            <div className="icon"><i className="bi bi-person"></i></div>
-                                            <span className="title">{t('home.tabs.profile')}</span>
-                                        </li>
-                                    </Link>
-              </nav>
-        </div>
-    )
+        <Link to="/search" style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#56CCF2", "--j": "#2F80ED" }}>
+            <div className="icon">
+              <i className="bi bi-search"></i>
+            </div>
+            <span className="title">{t("home.tabs.search")}</span>
+          </li>
+        </Link>
+        <Link to="/room" style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
+            <div className="icon">
+              <i className="bi bi-tv"></i>
+            </div>
+            <span className="title">{t("home.tabs.room")}</span>
+          </li>
+        </Link>
+        <Link to="/community" style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#ff9ad5", "--j": "#ffd1ea" }}>
+            <div className="icon">
+              <i className="bi bi-people"></i>
+            </div>
+            <span className="title">Community</span>
+          </li>
+        </Link>
+        <Link to="/dm" style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#ffa9c6", "--j": "#f434e2" }}>
+            <div className="icon">
+              <i className="bi bi-chat-dots"></i>
+            </div>
+            <span className="title">{t("home.tabs.dm")}</span>
+          </li>
+        </Link>
+        <Link to="/notification" style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#f6d365", "--j": "#fda085" }}>
+            <div className="notification-icon-wrapper">
+              <i className="bi bi-bell"></i>
+              {hasUnread && <span className="notif-dot"></span>}
+            </div>
+            <span className="title">{t("home.tabs.notification")}</span>
+          </li>
+        </Link>
+        <Link to="/settings" style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#84fab0", "--j": "#8fd3f4" }}>
+            <div className="icon">
+              <i className="bi bi-gear"></i>
+            </div>
+            <span className="title">{t("home.tabs.settings")}</span>
+          </li>
+        </Link>
+        <Link to={`/profile/${username}`} style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#c471f5", "--j": "#fa71cd" }}>
+            <div className="icon">
+              <i className="bi bi-person"></i>
+            </div>
+            <span className="title">{t("home.tabs.profile")}</span>
+          </li>
+        </Link>
+      </nav>
+    </div>
+  );
 }
 
 export default Dm;
