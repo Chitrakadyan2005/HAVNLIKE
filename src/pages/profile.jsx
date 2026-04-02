@@ -31,6 +31,7 @@ function Profile() {
   const [profileViewMode, setProfileViewMode] = useState(null);
   const [activityPosts, setActivityPosts] = useState([]);
   const [followPending, setFollowPending] = useState(false);
+  const [loadingActivity, setLoadingActivity] = useState(false);
 
   const presetAvatars = [
     "/pfps/default.png",
@@ -137,10 +138,29 @@ function Profile() {
     }
   };
 
+  const fetchMyPosts = async () => {
+    try {
+      const token = getToken();
+      if (!token) return;
+
+      const res = await fetch(`${API_URL}/api/community/my-posts`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setPosts(data.posts || []);
+      }
+    } catch (err) {
+      console.error("Failed to load my posts");
+    }
+  };
+
   useEffect(() => {
     if (!loggedInUsername) return;
 
     fetchUserProfile();
+    fetchMyPosts();
   }, [loggedInUsername, username]);
 
   const handleSelectAvatar = async (url) => {
@@ -379,12 +399,12 @@ function Profile() {
 
   const fetchLikedPosts = async () => {
     try {
+      setLoadingActivity(true);
       const token = getToken();
       if (!token) return;
-      const res = await fetch(`${API_URL}/api/profile/liked-posts`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+
+      const res = await fetch(`${API_URL}/api/community/liked-posts`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.ok) {
@@ -393,14 +413,17 @@ function Profile() {
       }
     } catch (err) {
       console.error("Failed to load liked posts");
+    } finally {
+      setLoadingActivity(false);
     }
   };
 
   const fetchCommentedPosts = async () => {
     try {
+      setLoadingActivity(true);
       const token = getToken();
       if (!token) return;
-      const res = await fetch(`${API_URL}/api/profile/commented-posts`, {
+      const res = await fetch(`${API_URL}/api/community/commented-posts`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -412,6 +435,8 @@ function Profile() {
       }
     } catch (err) {
       console.error("Failed to load commented posts");
+    } finally {
+      setLoadingActivity(false);
     }
   };
 
@@ -461,12 +486,12 @@ function Profile() {
       <div className="main-content">
         <aside className="left-panel">
           <ul className="leftpanel-animated">
-            <Link to="/home" style={{ textDecoration: "none" }}>
-              <li style={{ "--i": "#a955ff", "--j": "#ea51ff" }}>
+            <Link to="/room" style={{ textDecoration: "none" }}>
+              <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
                 <div className="icon">
-                  <i className="bi bi-house"></i>
+                  <i className="bi bi-tv"></i>
                 </div>
-                <span className="title">{t("home.tabs.home")}</span>
+                <span className="title">{t("home.tabs.room")}</span>
               </li>
             </Link>
             <Link to="/search" style={{ textDecoration: "none" }}>
@@ -475,14 +500,6 @@ function Profile() {
                   <i className="bi bi-search"></i>
                 </div>
                 <span className="title">{t("home.tabs.search")}</span>
-              </li>
-            </Link>
-            <Link to="/room" style={{ textDecoration: "none" }}>
-              <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
-                <div className="icon">
-                  <i className="bi bi-tv"></i>
-                </div>
-                <span className="title">{t("home.tabs.room")}</span>
               </li>
             </Link>
             <Link to="/community" style={{ textDecoration: "none" }}>
@@ -559,9 +576,9 @@ function Profile() {
                     <div
                       className="menu-item"
                       onClick={() => {
+                        setActiveTab("liked");
+                        setActivityPosts([]);
                         fetchLikedPosts();
-                        setProfileViewMode("liked");
-                        setShowEditModal(true);
                         setShowProfileMenu(false);
                       }}
                     >
@@ -571,9 +588,9 @@ function Profile() {
                     <div
                       className="menu-item"
                       onClick={() => {
+                        setActiveTab("commented");
+                        setActivityPosts([]);
                         fetchCommentedPosts();
-                        setProfileViewMode("commented");
-                        setShowEditModal(true);
                         setShowProfileMenu(false);
                       }}
                     >
@@ -641,9 +658,31 @@ function Profile() {
               <div className="profile-stats-bar">
                 <div
                   className={`stat-item ${activeTab === "posts" ? "active" : ""}`}
-                  onClick={() => setActiveTab("posts")}
+                  onClick={() => {
+                    setActiveTab("posts");
+                    fetchMyPosts();
+                  }}
                 >
-                  Posts : {currentProfile?.stats?.postCount || 0}
+                  Posts
+                </div>
+                <div
+                  className={`stat-item ${activeTab === "liked" ? "active" : ""}`}
+                  onClick={() => {
+                    setActiveTab("liked");
+                    fetchLikedPosts();
+                  }}
+                >
+                  ❤️ Liked
+                </div>
+
+                <div
+                  className={`stat-item ${activeTab === "commented" ? "active" : ""}`}
+                  onClick={() => {
+                    setActiveTab("commented");
+                    fetchCommentedPosts();
+                  }}
+                >
+                  💬 Commented
                 </div>
                 <div
                   className={`stat-item ${activeTab === "followers" ? "active" : ""}`}
@@ -692,10 +731,59 @@ function Profile() {
             <h3>
               {activeTab === "posts"
                 ? "My Posts"
-                : activeTab === "followers"
-                  ? "Followers"
-                  : "Following"}
+                : activeTab === "liked"
+                  ? "❤️ Liked Posts"
+                  : activeTab === "commented"
+                    ? "💬 Commented Posts"
+                    : activeTab === "followers"
+                      ? "Followers"
+                      : "Following"}
             </h3>
+            {activeTab === "liked" && (
+              <div className="post-grid">
+                {loadingActivity ? (
+                  <p>Loading...</p>
+                ) : activityPosts.length > 0 ? (
+                  activityPosts.map((post) => (
+                    <div className="grid-post" key={post.id}>
+                      <p>{post.content}</p>
+
+                      {post.comment_text && (
+                        <small className="comment-preview">
+                          💬 {post.comment_text}
+                        </small>
+                      )}
+                      <small>@{post.username}</small>
+                      <small className="community-tag">
+                        📍 {post.community_id}
+                      </small>
+                    </div>
+                  ))
+                ) : (
+                  <p>No liked posts yet.</p>
+                )}
+              </div>
+            )}
+
+            {activeTab === "commented" && (
+              <div className="post-grid">
+                {loadingActivity ? (
+                  <p>Loading...</p>
+                ) : activityPosts.length > 0 ? (
+                  activityPosts.map((post) => (
+                    <div className="grid-post" key={post.id}>
+                      <p>{post.content}</p>
+                      <small>@{post.username}</small>
+                      <small className="community-tag">
+                        📍 {post.community_id}
+                      </small>
+                    </div>
+                  ))
+                ) : (
+                  <p>No commented posts yet.</p>
+                )}
+              </div>
+            )}
 
             {activeTab === "posts" && (
               <div className="post-grid">
@@ -833,42 +921,6 @@ function Profile() {
                       </div>
                     </>
                   )}
-
-                  {profileViewMode !== "edit" && (
-                    <>
-                      <h3>
-                        {profileViewMode === "liked"
-                          ? "❤️ Liked Posts"
-                          : "💬 Commented Posts"}
-                      </h3>
-
-                      <div className="modal-post-list">
-                        {activityPosts.length > 0 ? (
-                          activityPosts.map((post) => (
-                            <div key={post.id} className="modal-post">
-                              <p>{post.content}</p>
-                              <small>@{post.username}</small>
-                            </div>
-                          ))
-                        ) : (
-                          <p>No activity yet.</p>
-                        )}
-                      </div>
-
-                      <div className="modal-actions">
-                        <button
-                          className="btn"
-                          onClick={() => {
-                            setShowEditModal(false);
-                            setProfileViewMode(null);
-                            setActivityPosts([]);
-                          }}
-                        >
-                          Close
-                        </button>
-                      </div>
-                    </>
-                  )}
                 </div>
               </div>
             )}
@@ -880,7 +932,7 @@ function Profile() {
           <div className="reach-out">
             <span>{t("home.reachOut")}</span>
             <a
-              href="https://instagram.com/yourusername"
+              href="https://www.instagram.com/havnlike.space?igsh=ODJ1MnQ0MmVweWdx"
               target="_blank"
               rel="noopener noreferrer"
               className="insta-btn"
@@ -892,12 +944,11 @@ function Profile() {
       </div>
 
       <nav className="mobile-bottom-nav">
-        <Link to="/home" style={{ textDecoration: "none" }}>
-          <li style={{ "--i": "#a955ff", "--j": "#ea51ff" }}>
+        <Link to="/room" style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
             <div className="icon">
-              <i className="bi bi-house"></i>
+              <i className="bi bi-tv"></i>
             </div>
-            <span className="title">{t("home.tabs.home")}</span>
           </li>
         </Link>
         <Link to="/search" style={{ textDecoration: "none" }}>
@@ -905,15 +956,6 @@ function Profile() {
             <div className="icon">
               <i className="bi bi-search"></i>
             </div>
-            <span className="title">{t("home.tabs.search")}</span>
-          </li>
-        </Link>
-        <Link to="/room" style={{ textDecoration: "none" }}>
-          <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
-            <div className="icon">
-              <i className="bi bi-tv"></i>
-            </div>
-            <span className="title">{t("home.tabs.room")}</span>
           </li>
         </Link>
         <Link to="/community" style={{ textDecoration: "none" }}>
@@ -921,7 +963,6 @@ function Profile() {
             <div className="icon">
               <i className="bi bi-people"></i>
             </div>
-            <span className="title">Community</span>
           </li>
         </Link>
         <Link to="/dm" style={{ textDecoration: "none" }}>
@@ -929,7 +970,6 @@ function Profile() {
             <div className="icon">
               <i className="bi bi-chat-dots"></i>
             </div>
-            <span className="title">{t("home.tabs.dm")}</span>
           </li>
         </Link>
         <Link to="/notification" style={{ textDecoration: "none" }}>
@@ -938,7 +978,6 @@ function Profile() {
               <i className="bi bi-bell"></i>
               {hasUnread && <span className="notif-dot"></span>}
             </div>
-            <span className="title">{t("home.tabs.notification")}</span>
           </li>
         </Link>
         <Link to="/settings" style={{ textDecoration: "none" }}>
@@ -946,7 +985,6 @@ function Profile() {
             <div className="icon">
               <i className="bi bi-gear"></i>
             </div>
-            <span className="title">{t("home.tabs.settings")}</span>
           </li>
         </Link>
         <Link
@@ -957,7 +995,6 @@ function Profile() {
             <div className="icon">
               <i className="bi bi-person"></i>
             </div>
-            <span className="title">{t("home.tabs.profile")}</span>
           </li>
         </Link>
       </nav>

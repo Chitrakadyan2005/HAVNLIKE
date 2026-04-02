@@ -23,6 +23,9 @@ function JoinedCommunity() {
   const [openMenu, setOpenMenu] = useState(null); // postId of opened 3-dot menu
   const [editingPostId, setEditingPostId] = useState(null);
   const [editText, setEditText] = useState("");
+  const isNoFilterCommunity = communityId === "no-filter";
+  const [loading, setLoading] = useState(true);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const modalRef = useRef();
   const buttonRef = useRef();
@@ -52,20 +55,52 @@ function JoinedCommunity() {
   useEffect(() => {
     const fetchPosts = async () => {
       const token = await getFreshToken();
-      if (!token) return;
 
-      const res = await fetch(`${API_URL}/api/community/${communityId}/posts`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      if (!token) {
+        console.log("Token not ready, retrying...");
+        setTimeout(fetchPosts, 800);
+        return;
+      }
+      try {
+        setLoading(true);
 
-      const data = await res.json();
-      setPosts(data);
+        const res = await fetch(
+          `${API_URL}/api/community/${communityId}/posts`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          console.log("Backend error:", data);
+          setPosts([]);
+          return;
+        }
+
+        setPosts(
+          (data || []).map((post) => ({
+            ...post,
+            user: post.username,
+            text: post.content,
+            time: new Date(post.created_at).toLocaleString(),
+            likesCount: Number(post.likecount || 0),
+            commentCount: Number(post.commentcount || 0),
+            comments: post.comments || [],
+          })),
+        );
+      } catch (err) {
+        console.error("Fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchPosts();
-  }, [communityId]);
+  }, [communityId, refreshTrigger]);
 
   // ================= CLICK OUTSIDE =================
   useEffect(() => {
@@ -149,27 +184,36 @@ function JoinedCommunity() {
   };
 
   const handleAddPost = async () => {
-    const token = await getFreshToken();
-    if (!token) return alert("Please login first.");
     if (!newPostText.trim()) return;
 
-    const moderation = await checkModeration(newPostText, token);
+    const token = await getFreshToken();
+    if (!token) return;
 
-    if (!moderation.allowed) {
-      if (moderation.action === "suspended") {
-        alert(
-          "🚫 Your account has been temporarily suspended due to abusive content.",
-        );
-      } else if (moderation.action === "warning") {
-        alert(
-          `⚠️ Warning ${moderation.warningsUsed}/${moderation.warningsUsed + moderation.warningsLeft}.
-Please keep conversations respectful.`,
-        );
-      } else {
-        alert("🚫 This content violates our safety rules.");
+    const text = newPostText.trim();
+
+    if (!isNoFilterCommunity) {
+      const moderation = await checkModeration(text, token);
+
+      if (!moderation.allowed) {
+        if (moderation.action === "suspended") {
+          alert("🚫 Your account has been temporarily suspended.");
+        } else if (moderation.action === "warning") {
+          alert(
+            `⚠️ Warning ${moderation.warningsUsed}/${moderation.warningsUsed + moderation.warningsLeft}`,
+          );
+        } else {
+          alert("🚫 This post violates rules.");
+        }
+        return;
       }
-      return;
+
+      if (moderation.severity === 1) {
+        alert("⚠️ Be respectful");
+        return;
+      }
     }
+
+    setNewPostText("");
 
     try {
       const res = await fetch(`${API_URL}/api/community/${communityId}/posts`, {
@@ -178,43 +222,37 @@ Please keep conversations respectful.`,
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          content: newPostText,
-          communityId,
-        }),
+        body: JSON.stringify({ content: text }),
       });
 
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || "Failed to create post");
-      }
+      if (!res.ok) throw new Error("Failed to create post");
 
       const newPost = await res.json();
-      const formattedNewPost = {
-        id: newPost.id,
-        text: newPost.content,
-        user: newPost.username,
-        avatar_url: newPost.avatar_url || "/default-avatar.png",
-        time: new Date(newPost.created_at).toLocaleString(),
-        likesCount: Number(newPost.likecount || 0),
-        comments: newPost.comments || [],
-        commentCount: newPost.commentcount || 0,
-        likedByUser: newPost.likedByUser === true,
-      };
 
-      setPosts((prev) => [formattedNewPost, ...prev]);
-      setNewPostText("");
+      setPosts((prev) => [
+        {
+          ...newPost,
+          user: newPost.username,
+          text: newPost.content,
+          time: new Date(newPost.created_at).toLocaleString(),
+          likesCount: 0,
+          commentCount: 0,
+          comments: [],
+        },
+        ...prev,
+      ]);
+
       setShowPostBox(false);
-      setEmojiPickers({});
+
+      setRefreshTrigger((prev) => prev + 1);
     } catch (err) {
-      console.error(err.message);
-      alert(err.message);
+      console.error(err);
     }
   };
 
   const startEdit = (post) => {
     setEditingPostId(post.id);
-    setEditText(post.text);
+    setEditText(post.text || post.content);
     setOpenMenu(null);
   };
 
@@ -290,19 +328,21 @@ Please keep conversations respectful.`,
     const text = commentTexts[postId]?.trim();
     if (!text) return;
 
-    const moderation = await checkModeration(text, token);
+    if (!isNoFilterCommunity) {
+      const moderation = await checkModeration(text, token);
 
-    if (!moderation.allowed) {
-      if (moderation.action === "suspended") {
-        alert("🚫 Your account has been temporarily suspended.");
-      } else if (moderation.action === "warning") {
-        alert(
-          `⚠️ Warning ${moderation.warningsUsed}/${moderation.warningsUsed + moderation.warningsLeft}`,
-        );
-      } else {
-        alert("🚫 This comment violates rules.");
+      if (!moderation.allowed) {
+        if (moderation.action === "suspended") {
+          alert("🚫 Your account has been temporarily suspended.");
+        } else if (moderation.action === "warning") {
+          alert(
+            `⚠️ Warning ${moderation.warningsUsed}/${moderation.warningsUsed + moderation.warningsLeft}`,
+          );
+        } else {
+          alert("🚫 This comment violates rules.");
+        }
+        return;
       }
-      return;
     }
 
     try {
@@ -371,7 +411,7 @@ Please keep conversations respectful.`,
   };
 
   return (
-    <div className="HomePage">
+    <div className="commynitypage">
       <img
         src="https://i.pinimg.com/736x/64/5f/40/645f4034ce36c03a18e0211b0f6728c4.jpg"
         alt="wallpaper"
@@ -384,12 +424,12 @@ Please keep conversations respectful.`,
         <aside className="left-panel">
           {/* Sidebar */}
           <ul className="leftpanel-animated">
-            <Link to="/home">
-              <li style={{ "--i": "#a955ff", "--j": "#ea51ff" }}>
+            <Link to="/room">
+              <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
                 <div className="icon">
-                  <i className="bi bi-house"></i>
+                  <i className="bi bi-tv"></i>
                 </div>
-                <span className="title">{t("home.tabs.home")}</span>
+                <span className="title">{t("home.tabs.room")}</span>
               </li>
             </Link>
             <Link to="/search">
@@ -398,14 +438,6 @@ Please keep conversations respectful.`,
                   <i className="bi bi-search"></i>
                 </div>
                 <span className="title">{t("home.tabs.search")}</span>
-              </li>
-            </Link>
-            <Link to="/room">
-              <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
-                <div className="icon">
-                  <i className="bi bi-tv"></i>
-                </div>
-                <span className="title">{t("home.tabs.room")}</span>
               </li>
             </Link>
             <Link to="/community" style={{ textDecoration: "none" }}>
@@ -464,152 +496,160 @@ Please keep conversations respectful.`,
             </Link>
           </div>
           <div className="feed-container">
-            {posts.map((post) => (
-              <div className="post" key={post.id}>
-                <div className="post-header">
-                  <h3>
-                    <Link
-                      to={`/profile/${post.user}`}
-                      className="username-link"
-                    >
-                      <img
-                        src={post.avatar_url}
-                        alt={post.user}
-                        className="post-avatar"
-                      />
-                      {post.user}
-                    </Link>
-                  </h3>
-
-                  <div className="post-header-right">
-                    <span className="post-time">{post.time}</span>
-
-                    {/* 3-dot menu */}
-                    {/* Show menu ONLY for post owner */}
-                    {post.user === username && (
-                      <div className="post-menu">
-                        <i
-                          className="bi bi-three-dots"
-                          onClick={() => toggleMenu(post.id)}
-                        ></i>
-
-                        {openMenu === post.id && (
-                          <div className="post-menu-dropdown">
-                            <div
-                              className="menu-item"
-                              onClick={() => startEdit(post)}
-                            >
-                              Edit <i className="bi bi-pencil"></i>
-                            </div>
-                            <div
-                              className="menu-item delete"
-                              onClick={() => deletePost(post.id)}
-                            >
-                              Delete <i className="bi bi-trash"></i>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="post-body">
-                  {editingPostId === post.id ? (
-                    <div className="edit-post-box">
-                      <input
-                        type="text"
-                        value={editText}
-                        onChange={(e) => setEditText(e.target.value)}
-                        onKeyPress={(e) =>
-                          e.key === "Enter" && saveEdit(post.id)
-                        }
-                      />
-                      <button onClick={() => saveEdit(post.id)}>Save</button>
-                      <button onClick={() => setEditingPostId(null)}>
-                        Cancel
-                      </button>
-                    </div>
-                  ) : (
-                    <p>{post.text}</p>
-                  )}
-                </div>
-
-                <div className="post-actions">
-                  <i
-                    className={`bi ${post.likedByUser ? "bi-heart-fill liked" : "bi-heart"}`}
-                    onClick={() => handleLike(post.id)}
-                  ></i>
-                  <span>{post.likesCount}</span>
-                  <i
-                    className="bi bi-chat-dots"
-                    onClick={() => toggleComment(post.id)}
-                  ></i>
-                  <span>{post.commentCount}</span>
-                </div>
-
-                {showComments[post.id] && (
-                  <div className="comment-section">
-                    <div className="comment-box">
-                      <button
-                        className="emoji-btn"
-                        onClick={() => toggleEmoji(post.id)}
+            {loading ? (
+              <p style={{ textAlign: "center" }}>Loading posts...</p>
+            ) : posts.length === 0 ? (
+              <p style={{ textAlign: "center", color: "#999" }}>
+                No posts yet. Be the first one 💗
+              </p>
+            ) : (
+              posts.map((post) => (
+                <div className="post" key={post.id}>
+                  <div className="post-header">
+                    <h3>
+                      <Link
+                        to={`/profile/${post.user}`}
+                        className="username-link"
                       >
-                        😊
-                      </button>
-                      {emojiPickers[post.id] && (
-                        <div className="emoji-popup">
-                          <div className="emoji-popup-header">
-                            <span>Choose Emoji</span>
-                            <button
-                              className="close-emoji-btn"
-                              onClick={() => closeEmoji(post.id)}
-                            >
-                              ✖
-                            </button>
-                          </div>
-                          <EmojiPicker
-                            onEmojiClick={(emojiData) =>
-                              onEmojiClick(emojiData, post.id)
-                            }
-                            width="100%"
-                            height="280px"
-                          />
+                        <img
+                          src={post.avatar_url}
+                          alt={post.user}
+                          className="post-avatar"
+                        />
+                        {post.user}
+                      </Link>
+                    </h3>
+
+                    <div className="post-header-right">
+                      <span className="post-time">{post.time}</span>
+
+                      {post.user === username && (
+                        <div className="post-menu">
+                          <i
+                            className="bi bi-three-dots"
+                            onClick={() => toggleMenu(post.id)}
+                          ></i>
+
+                          {openMenu === post.id && (
+                            <div className="post-menu-dropdown">
+                              <div
+                                className="menu-item"
+                                onClick={() => startEdit(post)}
+                              >
+                                Edit <i className="bi bi-pencil"></i>
+                              </div>
+                              <div
+                                className="menu-item delete"
+                                onClick={() => deletePost(post.id)}
+                              >
+                                Delete <i className="bi bi-trash"></i>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
-                      <input
-                        type="text"
-                        placeholder={t("home.post.writeComment")}
-                        value={commentTexts[post.id] || ""}
-                        onChange={(e) =>
-                          setCommentTexts({
-                            ...commentTexts,
-                            [post.id]: e.target.value,
-                          })
-                        }
-                        onKeyPress={(e) =>
-                          e.key === "Enter" && handleAddComment(post.id)
-                        }
-                      />
-                      <i
-                        className="bi bi-send send-icon"
-                        onClick={() => handleAddComment(post.id)}
-                      ></i>
                     </div>
+                  </div>
 
-                    {post.comments.length > 0 && (
-                      <div className="comment-replies">
-                        {post.comments.map((comment, idx) => (
-                          <div className="single-comment" key={idx}>
-                            ↳ <strong>{comment.user}</strong>: {comment.text}
-                          </div>
-                        ))}
+                  <div className="post-body">
+                    {editingPostId === post.id ? (
+                      <div className="edit-post-box">
+                        <input
+                          type="text"
+                          value={editText}
+                          onChange={(e) => setEditText(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              saveEdit(post.id);
+                            }
+                          }}
+                        />
+                        <button onClick={() => saveEdit(post.id)}>Save</button>
+                        <button onClick={() => setEditingPostId(null)}>
+                          Cancel
+                        </button>
                       </div>
+                    ) : (
+                      <p>{post.text}</p>
                     )}
                   </div>
-                )}
-              </div>
-            ))}
+
+                  <div className="post-actions">
+                    <i
+                      className={`bi ${post.likedByUser ? "bi-heart-fill liked" : "bi-heart"}`}
+                      onClick={() => handleLike(post.id)}
+                    ></i>
+                    <span>{post.likesCount}</span>
+
+                    <i
+                      className="bi bi-chat-dots"
+                      onClick={() => toggleComment(post.id)}
+                    ></i>
+                    <span>{post.commentCount}</span>
+                  </div>
+
+                  {showComments[post.id] && (
+                    <div className="comment-section">
+                      <div className="comment-box">
+                        <button
+                          className="emoji-btn"
+                          onClick={() => toggleEmoji(post.id)}
+                        >
+                          😊
+                        </button>
+
+                        {emojiPickers[post.id] && (
+                          <div className="emoji-popup">
+                            <EmojiPicker
+                              onEmojiClick={(emojiData) =>
+                                onEmojiClick(emojiData, post.id)
+                              }
+                              width="100%"
+                              height="280px"
+                            />
+                          </div>
+                        )}
+
+                        <input
+                          type="text"
+                          placeholder={t("home.post.writeComment")}
+                          value={commentTexts[post.id] || ""}
+                          onChange={(e) =>
+                            setCommentTexts({
+                              ...commentTexts,
+                              [post.id]: e.target.value,
+                            })
+                          }
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleAddComment(post.id);
+                            }
+                          }}
+                        />
+
+                        <i
+                          className="bi bi-send send-icon"
+                          onClick={() => handleAddComment(post.id)}
+                        ></i>
+                      </div>
+
+                      {post.comments.length > 0 && (
+                        <div className="comment-replies">
+                          {post.comments.map((comment, idx) => (
+                            <div className="single-comment" key={idx}>
+                              ↳ <strong>{comment.username}</strong>:{" "}
+                              {comment.text}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
 
             {/* Add Post Modal */}
             {showPostBox && (
@@ -625,7 +665,12 @@ Please keep conversations respectful.`,
                       placeholder={t("home.post.placeholder")}
                       value={newPostText}
                       onChange={(e) => setNewPostText(e.target.value)}
-                      onKeyPress={(e) => e.key === "Enter" && handleAddPost()}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleAddPost();
+                        }
+                      }}
                     />
                     <i className="bi bi-send-fill" onClick={handleAddPost}></i>
                   </div>
@@ -670,7 +715,7 @@ Please keep conversations respectful.`,
           <div className="reach-out">
             <span>{t("home.reachOut")}</span>
             <a
-              href="https://instagram.com/yourusername"
+              href="https://www.instagram.com/havnlike.space?igsh=ODJ1MnQ0MmVweWdx"
               target="_blank"
               rel="noopener noreferrer"
               className="insta-btn"
@@ -682,12 +727,11 @@ Please keep conversations respectful.`,
       </div>
 
       <nav className="mobile-bottom-nav">
-        <Link to="/home" style={{ textDecoration: "none" }}>
-          <li style={{ "--i": "#a955ff", "--j": "#ea51ff" }}>
+        <Link to="/room" style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
             <div className="icon">
-              <i className="bi bi-house"></i>
+              <i className="bi bi-tv"></i>
             </div>
-            <span className="title">{t("home.tabs.home")}</span>
           </li>
         </Link>
         <Link to="/search" style={{ textDecoration: "none" }}>
@@ -695,15 +739,6 @@ Please keep conversations respectful.`,
             <div className="icon">
               <i className="bi bi-search"></i>
             </div>
-            <span className="title">{t("home.tabs.search")}</span>
-          </li>
-        </Link>
-        <Link to="/room" style={{ textDecoration: "none" }}>
-          <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
-            <div className="icon">
-              <i className="bi bi-tv"></i>
-            </div>
-            <span className="title">{t("home.tabs.room")}</span>
           </li>
         </Link>
         <Link to="/community" style={{ textDecoration: "none" }}>
@@ -711,7 +746,6 @@ Please keep conversations respectful.`,
             <div className="icon">
               <i className="bi bi-people"></i>
             </div>
-            <span className="title">Community</span>
           </li>
         </Link>
         <Link to="/dm" style={{ textDecoration: "none" }}>
@@ -719,7 +753,6 @@ Please keep conversations respectful.`,
             <div className="icon">
               <i className="bi bi-chat-dots"></i>
             </div>
-            <span className="title">{t("home.tabs.dm")}</span>
           </li>
         </Link>
         <Link to="/notification" style={{ textDecoration: "none" }}>
@@ -728,7 +761,6 @@ Please keep conversations respectful.`,
               <i className="bi bi-bell"></i>
               {hasUnread && <span className="notif-dot"></span>}
             </div>
-            <span className="title">{t("home.tabs.notification")}</span>
           </li>
         </Link>
         <Link to="/settings" style={{ textDecoration: "none" }}>
@@ -736,7 +768,6 @@ Please keep conversations respectful.`,
             <div className="icon">
               <i className="bi bi-gear"></i>
             </div>
-            <span className="title">{t("home.tabs.settings")}</span>
           </li>
         </Link>
         <Link to={`/profile/${username}`} style={{ textDecoration: "none" }}>
@@ -744,7 +775,6 @@ Please keep conversations respectful.`,
             <div className="icon">
               <i className="bi bi-person"></i>
             </div>
-            <span className="title">{t("home.tabs.profile")}</span>
           </li>
         </Link>
       </nav>

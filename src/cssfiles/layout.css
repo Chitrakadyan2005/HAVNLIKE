@@ -278,7 +278,12 @@ a { color: inherit; }
 }
 
 /* Icons (Bootstrap Icons) */
-.bi { cursor: pointer; font-size: 20px; color: var(--text-500); }
+.leftpanel-animated .bi,
+.mobile-bottom-nav .bi {
+  cursor: pointer;
+  font-size: 20px;
+  color: var(--text-500);
+}
 .bi:hover { color: var(--pink-600); }
 
 .notification-icon-wrapper {

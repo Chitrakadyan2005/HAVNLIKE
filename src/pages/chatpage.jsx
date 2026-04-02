@@ -13,12 +13,13 @@ function ChatPage() {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [userProfile, setUserProfile] = useState(null);
   const [userProfiles, setUserProfiles] = useState({}); // Cache for multiple user profiles
   const [currentUser, setCurrentUser] = useState(null);
   const { t } = useTranslation();
   const [sending, setSending] = useState(false);
   const [hasUnread, setHasUnread] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const chatRef = useRef();
 
   useEffect(() => {
     const checkUnread = async () => {
@@ -84,17 +85,25 @@ function ChatPage() {
   useEffect(() => {
     if (!currentUser) return;
 
-    socket.emit("join-dm", currentUser);
+    const storedUserId = sessionStorage.getItem("userId");
+
+    socket.emit("join-dm", Number(storedUserId));
 
     socket.on("receive-dm", (msg) => {
-      const normalized = msg?.text
-        ? { from: msg.from, message: msg.text }
-        : msg;
+      const normalized = {
+        from: msg.from,
+        senderId: msg.sender_id,
+        message: msg.message || msg.text,
+      };
 
       setMessages((prev) => {
         if (
           normalized.from === currentUser &&
-          prev.some((m) => m.message === normalized.message)
+          prev.some(
+            (m) =>
+              m.message === normalized.message &&
+              m.senderId === normalized.senderId,
+          )
         ) {
           return prev;
         }
@@ -107,18 +116,16 @@ function ChatPage() {
     };
   }, [currentUser]);
 
-  // 📩 Fetch chat and user profile
+  // Fetch chat and user profile
   useEffect(() => {
     if (!currentUser) return;
     if (!userId) return;
 
     const token = sessionStorage.getItem("token");
-    if (!token) {
-      console.error("⚠️ No token found in sessionStorage");
-      return;
-    }
+    if (!token) return;
 
-    // Fetch chat messages
+    setLoading(true);
+
     fetch(`${API_URL}/api/dm/chat/${userId}`, {
       method: "GET",
       headers: {
@@ -131,42 +138,32 @@ function ChatPage() {
         return res.json();
       })
       .then((data) => {
-        console.log("Messages data:", data); // Debug log
-        setMessages(data);
-        // Fetch profiles for all unique users in the chat
-        const uniqueUsers = [
-          ...new Set(data.map((msg) => msg.from || msg.sender_id)),
-        ];
-        console.log("Unique users:", uniqueUsers); // Debug log
-        uniqueUsers.forEach((user) => {
-          if (user && user !== currentUser) {
-            fetchUserProfile(user);
-          }
-        });
+        setMessages(
+          data.map((msg) => ({
+            from: msg.from,
+            senderId: msg.sender_id,
+            message: msg.message,
+          })),
+        );
+
+        if (username && username !== currentUser) {
+          fetchUserProfile(username);
+        }
+
+        setLoading(false);
       })
       .catch((err) => {
         console.error("Chat fetch error:", err.message);
         setMessages([]);
+        setLoading(false);
       });
+  }, [userId, username, currentUser]);
 
-    // Fetch user profile for avatar
-    fetch(`${API_URL}/api/profile/${username}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((data) => setUserProfile(data))
-      .catch((err) => {
-        console.error("Profile fetch error:", err.message);
-        setUserProfile(null);
-      });
-  }, [userId, username]);
+  useEffect(() => {
+    if (chatRef.current) {
+      chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   useEffect(() => {
     if (!token) {
@@ -234,6 +231,10 @@ function ChatPage() {
 
   if (!currentUser) return null;
 
+  if (loading) {
+    return <div style={{ padding: "20px" }}>Loading chat...</div>;
+  }
+
   return (
     <div className="chatPage">
       <img
@@ -246,23 +247,6 @@ function ChatPage() {
       <div className="main-content">
         <aside className="left-panel">
           <ul className="leftpanel-animated">
-            <Link to="/home" style={{ textDecoration: "none" }}>
-              <li style={{ "--i": "#a955ff", "--j": "#ea51ff" }}>
-                <div className="icon">
-                  <i className="bi bi-house"></i>
-                </div>
-                <span className="title">{t("home.tabs.home")}</span>
-              </li>
-            </Link>
-
-            <Link to="/search" style={{ textDecoration: "none" }}>
-              <li style={{ "--i": "#56CCF2", "--j": "#2F80ED" }}>
-                <div className="icon">
-                  <i className="bi bi-search"></i>
-                </div>
-                <span className="title">{t("home.tabs.search")}</span>
-              </li>
-            </Link>
 
             <Link to="/room" style={{ textDecoration: "none" }}>
               <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
@@ -270,6 +254,14 @@ function ChatPage() {
                   <i className="bi bi-tv"></i>
                 </div>
                 <span className="title">{t("home.tabs.room")}</span>
+              </li>
+            </Link>
+            <Link to="/search" style={{ textDecoration: "none" }}>
+              <li style={{ "--i": "#56CCF2", "--j": "#2F80ED" }}>
+                <div className="icon">
+                  <i className="bi bi-search"></i>
+                </div>
+                <span className="title">{t("home.tabs.search")}</span>
               </li>
             </Link>
             <Link to="/community" style={{ textDecoration: "none" }}>
@@ -330,7 +322,7 @@ function ChatPage() {
               </Link>
               <div className="chat-user-info">
                 <img
-                  src={userProfile?.avatarUrl || "/pfps/pfp1.jpg"}
+                  src={userProfiles[username]?.avatarUrl || "/pfps/pfp1.jpg"}
                   alt={username}
                   className="chat-navbar-avatar"
                 />
@@ -343,9 +335,10 @@ function ChatPage() {
               </div>
             </nav>
 
-            <div className="dm-chat-body">
+            <div className="dm-chat-body" ref={chatRef}>
               {messages.map((msg, index) => {
                 const senderUsername = msg.from;
+
                 const isCurrentUser = senderUsername === currentUser;
                 const senderProfile = userProfiles[senderUsername];
 
@@ -411,7 +404,7 @@ function ChatPage() {
           <div className="reach-out">
             <span>{t("home.reachOut")}</span>
             <a
-              href="https://instagram.com/yourusername"
+              href="https://www.instagram.com/havnlike.space?igsh=ODJ1MnQ0MmVweWdx"
               target="_blank"
               rel="noopener noreferrer"
               className="insta-btn"
@@ -423,12 +416,11 @@ function ChatPage() {
       </div>
 
       <nav className="mobile-bottom-nav">
-        <Link to="/home" style={{ textDecoration: "none" }}>
-          <li style={{ "--i": "#a955ff", "--j": "#ea51ff" }}>
+        <Link to="/room" style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
             <div className="icon">
-              <i className="bi bi-house"></i>
+              <i className="bi bi-tv"></i>
             </div>
-            <span className="title">{t("home.tabs.home")}</span>
           </li>
         </Link>
         <Link to="/search" style={{ textDecoration: "none" }}>
@@ -436,15 +428,6 @@ function ChatPage() {
             <div className="icon">
               <i className="bi bi-search"></i>
             </div>
-            <span className="title">{t("home.tabs.search")}</span>
-          </li>
-        </Link>
-        <Link to="/room" style={{ textDecoration: "none" }}>
-          <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
-            <div className="icon">
-              <i className="bi bi-tv"></i>
-            </div>
-            <span className="title">{t("home.tabs.room")}</span>
           </li>
         </Link>
         <Link to="/community" style={{ textDecoration: "none" }}>
@@ -452,7 +435,6 @@ function ChatPage() {
             <div className="icon">
               <i className="bi bi-people"></i>
             </div>
-            <span className="title">Community</span>
           </li>
         </Link>
         <Link to="/dm" style={{ textDecoration: "none" }}>
@@ -460,7 +442,6 @@ function ChatPage() {
             <div className="icon">
               <i className="bi bi-chat-dots"></i>
             </div>
-            <span className="title">{t("home.tabs.dm")}</span>
           </li>
         </Link>
         <Link to="/notification" style={{ textDecoration: "none" }}>
@@ -469,7 +450,6 @@ function ChatPage() {
               <i className="bi bi-bell"></i>
               {hasUnread && <span className="notif-dot"></span>}
             </div>
-            <span className="title">{t("home.tabs.notification")}</span>
           </li>
         </Link>
         <Link to="/settings" style={{ textDecoration: "none" }}>
@@ -477,7 +457,6 @@ function ChatPage() {
             <div className="icon">
               <i className="bi bi-gear"></i>
             </div>
-            <span className="title">{t("home.tabs.settings")}</span>
           </li>
         </Link>
         <Link to={`/profile/${username}`} style={{ textDecoration: "none" }}>
@@ -485,7 +464,6 @@ function ChatPage() {
             <div className="icon">
               <i className="bi bi-person"></i>
             </div>
-            <span className="title">{t("home.tabs.profile")}</span>
           </li>
         </Link>
       </nav>

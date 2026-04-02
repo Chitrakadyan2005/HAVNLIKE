@@ -64,27 +64,18 @@ function Dm() {
       setConversations((prev) => {
         const otherUserId = msg.from === userId ? msg.to : msg.from;
 
-        const idx = prev.findIndex((c) => c.id === otherUserId);
-        if (idx !== -1) {
-          const updated = [...prev];
-          updated[idx] = {
-            ...updated[idx],
-            lastMessage: msg.message,
-            time: msg.created_at || new Date().toLocaleTimeString(),
-          };
-          return updated;
-        }
+        const updatedConv = {
+          id: otherUserId,
+          username: msg.otherUsername,
+          lastMessage: msg.message,
+          time: msg.created_at || new Date().toLocaleTimeString(),
+          avatar: msg.avatar,
+          isUnread: msg.to === userId,
+        };
 
-        return [
-          {
-            id: otherUserId,
-            username: msg.otherUsername, // backend se bhejna hoga
-            lastMessage: msg.message,
-            time: msg.created_at,
-            avatar: msg.avatar,
-          },
-          ...prev,
-        ];
+        const filtered = prev.filter((c) => c.id !== otherUserId);
+
+        return [updatedConv, ...filtered];
       });
     });
 
@@ -135,7 +126,16 @@ function Dm() {
 
         const data = await res.json();
         console.log("Conversations data:", data); // Debug log to see if avatars are coming
-        setConversations(data);
+        setConversations(
+          data.map((conv) => ({
+            id: conv.id,
+            username: conv.username,
+            avatar: conv.avatar,
+            lastMessage: conv.lastMessage || "Start chatting ✨",
+            time: conv.time,
+            isUnread: false,
+          })),
+        );
       } catch (err) {
         console.error("Error fetching conversations: ", err);
       }
@@ -157,12 +157,13 @@ function Dm() {
       <div className="main-content">
         <aside className="left-panel">
           <ul className="leftpanel-animated">
-            <Link to="/home" style={{ textDecoration: "none" }}>
-              <li style={{ "--i": "#a955ff", "--j": "#ea51ff" }}>
+
+            <Link to="/room" style={{ textDecoration: "none" }}>
+              <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
                 <div className="icon">
-                  <i className="bi bi-house"></i>
+                  <i className="bi bi-tv"></i>
                 </div>
-                <span className="title">{t("home.tabs.home")}</span>
+                <span className="title">{t("home.tabs.room")}</span>
               </li>
             </Link>
 
@@ -172,15 +173,6 @@ function Dm() {
                   <i className="bi bi-search"></i>
                 </div>
                 <span className="title">{t("home.tabs.search")}</span>
-              </li>
-            </Link>
-
-            <Link to="/room" style={{ textDecoration: "none" }}>
-              <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
-                <div className="icon">
-                  <i className="bi bi-tv"></i>
-                </div>
-                <span className="title">{t("home.tabs.room")}</span>
               </li>
             </Link>
 
@@ -259,7 +251,9 @@ function Dm() {
                   />
                   <div className="chat-info">
                     <h4>{conv.username}</h4>
-                    <p>{conv.lastMessage || t("dm.noMessages")}</p>
+                    <p className={conv.isUnread ? "unread-msg" : ""}>
+                      {conv.lastMessage || t("dm.noMessages")}
+                    </p>
                   </div>
                   <span className="chat-time">{conv.time || t("dm.now")}</span>
                 </Link>
@@ -273,7 +267,7 @@ function Dm() {
           <div className="reach-out">
             <span>{t("home.reachOut")}</span>
             <a
-              href="https://instagram.com/yourusername"
+              href="https://www.instagram.com/havnlike.space?igsh=ODJ1MnQ0MmVweWdx"
               target="_blank"
               rel="noopener noreferrer"
               className="insta-btn"
@@ -285,12 +279,11 @@ function Dm() {
       </div>
 
       <nav className="mobile-bottom-nav">
-        <Link to="/home" style={{ textDecoration: "none" }}>
-          <li style={{ "--i": "#a955ff", "--j": "#ea51ff" }}>
+        <Link to="/room" style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
             <div className="icon">
-              <i className="bi bi-house"></i>
+              <i className="bi bi-tv"></i>
             </div>
-            <span className="title">{t("home.tabs.home")}</span>
           </li>
         </Link>
         <Link to="/search" style={{ textDecoration: "none" }}>
@@ -298,15 +291,6 @@ function Dm() {
             <div className="icon">
               <i className="bi bi-search"></i>
             </div>
-            <span className="title">{t("home.tabs.search")}</span>
-          </li>
-        </Link>
-        <Link to="/room" style={{ textDecoration: "none" }}>
-          <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
-            <div className="icon">
-              <i className="bi bi-tv"></i>
-            </div>
-            <span className="title">{t("home.tabs.room")}</span>
           </li>
         </Link>
         <Link to="/community" style={{ textDecoration: "none" }}>
@@ -314,7 +298,6 @@ function Dm() {
             <div className="icon">
               <i className="bi bi-people"></i>
             </div>
-            <span className="title">Community</span>
           </li>
         </Link>
         <Link to="/dm" style={{ textDecoration: "none" }}>
@@ -322,7 +305,6 @@ function Dm() {
             <div className="icon">
               <i className="bi bi-chat-dots"></i>
             </div>
-            <span className="title">{t("home.tabs.dm")}</span>
           </li>
         </Link>
         <Link to="/notification" style={{ textDecoration: "none" }}>
@@ -331,7 +313,6 @@ function Dm() {
               <i className="bi bi-bell"></i>
               {hasUnread && <span className="notif-dot"></span>}
             </div>
-            <span className="title">{t("home.tabs.notification")}</span>
           </li>
         </Link>
         <Link to="/settings" style={{ textDecoration: "none" }}>
@@ -339,7 +320,6 @@ function Dm() {
             <div className="icon">
               <i className="bi bi-gear"></i>
             </div>
-            <span className="title">{t("home.tabs.settings")}</span>
           </li>
         </Link>
         <Link to={`/profile/${username}`} style={{ textDecoration: "none" }}>
@@ -347,7 +327,6 @@ function Dm() {
             <div className="icon">
               <i className="bi bi-person"></i>
             </div>
-            <span className="title">{t("home.tabs.profile")}</span>
           </li>
         </Link>
       </nav>

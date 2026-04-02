@@ -225,23 +225,7 @@ function Room() {
       <div className="main-content">
         <aside className="left-panel">
           <ul className="leftpanel-animated">
-            <Link to="/home" style={{ textDecoration: "none" }}>
-              <li style={{ "--i": "#a955ff", "--j": "#ea51ff" }}>
-                <div className="icon">
-                  <i className="bi bi-house"></i>
-                </div>
-                <span className="title">{t("home.tabs.home")}</span>
-              </li>
-            </Link>
 
-            <Link to="/search" style={{ textDecoration: "none" }}>
-              <li style={{ "--i": "#56CCF2", "--j": "#2F80ED" }}>
-                <div className="icon">
-                  <i className="bi bi-search"></i>
-                </div>
-                <span className="title">{t("home.tabs.search")}</span>
-              </li>
-            </Link>
 
             <Link to="/room" style={{ textDecoration: "none" }}>
               <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
@@ -249,6 +233,14 @@ function Room() {
                   <i className="bi bi-tv"></i>
                 </div>
                 <span className="title">{t("home.tabs.room")}</span>
+              </li>
+            </Link>
+            <Link to="/search" style={{ textDecoration: "none" }}>
+              <li style={{ "--i": "#56CCF2", "--j": "#2F80ED" }}>
+                <div className="icon">
+                  <i className="bi bi-search"></i>
+                </div>
+                <span className="title">{t("home.tabs.search")}</span>
               </li>
             </Link>
 
@@ -384,7 +376,7 @@ function Room() {
           <div className="reach-out">
             <span>{t("home.reachOut")}</span>
             <a
-              href="https://instagram.com/yourusername"
+              href="https://www.instagram.com/havnlike.space?igsh=ODJ1MnQ0MmVweWdx"
               target="_blank"
               rel="noopener noreferrer"
               className="insta-btn"
@@ -405,12 +397,12 @@ function Room() {
       />
 
       <nav className="mobile-bottom-nav">
-        <Link to="/home" style={{ textDecoration: "none" }}>
-          <li style={{ "--i": "#a955ff", "--j": "#ea51ff" }}>
+        <Link to="/room" style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
             <div className="icon">
-              <i className="bi bi-house"></i>
+              <i className="bi bi-tv"></i>
             </div>
-            <span className="title">{t("home.tabs.home")}</span>
+            <span className="title">{t("home.tabs.room")}</span>
           </li>
         </Link>
         <Link to="/search" style={{ textDecoration: "none" }}>
@@ -419,14 +411,6 @@ function Room() {
               <i className="bi bi-search"></i>
             </div>
             <span className="title">{t("home.tabs.search")}</span>
-          </li>
-        </Link>
-        <Link to="/room" style={{ textDecoration: "none" }}>
-          <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
-            <div className="icon">
-              <i className="bi bi-tv"></i>
-            </div>
-            <span className="title">{t("home.tabs.room")}</span>
           </li>
         </Link>
         <Link to="/community" style={{ textDecoration: "none" }}>

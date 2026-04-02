@@ -4,7 +4,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import App from "./pages/App";
 import Username from "./pages/username";
 import SetupUsername from "./pages/SetupUsername";
-import Home from "./pages/home";
 import Search from "./pages/search";
 import Room from "./pages/room";
 import Dm from "./pages/dm";
@@ -21,6 +20,8 @@ import Community from "./pages/communities";
 import JoinedCommunity from "./pages/joinedcommunity";
 import CommunityBot from "./pages/communityBot";
 
+
+
 refreshSocketAuth();
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -29,7 +30,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <Route path="/" element={<App />} />
       <Route path="/username" element={<Username />} />
       <Route path="/setup-username" element={<SetupUsername />} />
-      <Route path="/home" element={<Home />} />
       <Route path="/search" element={<Search />} />
       <Route path="/room" element={<Room />} />
       <Route path="/community" element={<Community />} />

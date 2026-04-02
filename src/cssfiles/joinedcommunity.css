@@ -59,6 +59,70 @@
   align-items: center;
 }
 
+.post-input {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+
+  padding: 12px;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid var(--rose-200);
+
+  align-items: center;
+}
+
+.post-input input {
+  border: 1px solid var(--rose-200);
+  border-radius: 20px;
+  padding: 10px 14px;
+  width: 100%;
+  background: white;
+  color: #333;
+  outline: none;
+}
+
+.post-input .bi-emoji-smile {
+  font-size: 18px;
+  color: var(--pink-500);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  transition: background 0.2s ease;
+}
+
+.post-input .bi-emoji-smile:hover {
+  background: var(--pink-100);
+}
+
+.post-input .bi-send-fill {
+  font-size: 18px;
+  color: white;
+  background: var(--pink-500);
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.post-input .bi-send-fill:hover {
+  background: var(--pink-600);
+}
+
+.post-input .bi-send-fill {
+  font-size: 18px;
+  color: white;
+  background: var(--pink-500);
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.post-input .bi-send-fill:hover {
+  background: var(--pink-600);
+}
+
 .post-avatar {
   width: 36px;
   height: 36px;
@@ -129,6 +193,124 @@
   font-size: 13px;
   margin-bottom: 6px;
   color: var(--text-700);
+}
+
+/* ===== POST MENU (3 DOTS) ===== */
+
+.post-menu {
+  position: relative;
+}
+
+.post-menu i {
+  font-size: 18px;
+  padding: 6px;
+  border-radius: 50%;
+  color: var(--text-700);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.post-menu i:hover {
+  background: var(--pink-100);
+  color: var(--pink-600);
+}
+
+/* dropdown */
+.post-menu-dropdown {
+  position: absolute;
+  right: 0;
+  top: 30px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid var(--rose-200);
+  border-radius: 12px;
+  padding: 6px;
+  min-width: 150px;
+  box-shadow: var(--shadow);
+  z-index: 100;
+}
+
+/* menu items */
+.post-menu-dropdown .menu-item {
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.post-menu-dropdown .menu-item:hover {
+  background: var(--pink-75);
+}
+
+/* delete red */
+.post-menu-dropdown .menu-item.delete {
+  color: #ff4d4f;
+}
+
+.post-menu-dropdown .menu-item.delete:hover {
+  background: rgba(255, 77, 79, 0.1);
+}
+
+
+/* ===== EDIT POST (LIKE PROFILE) ===== */
+
+.edit-post-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.edit-post-box input {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--rose-200);
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 14px;
+  outline: none;
+  background: #fff;
+  color: var(--text-700);
+}
+
+.edit-post-box input:focus {
+  border-color: var(--pink-500);
+}
+
+/* buttons container */
+.edit-post-box button {
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* save */
+.edit-post-box button:first-of-type {
+  background: var(--pink-500);
+  color: #fff;
+}
+
+/* cancel */
+.edit-post-box button:last-of-type {
+  background: transparent;
+  color: var(--text-500);
+}
+
+.post-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 12px;
+  color: var(--text-500);
+}
+
+.post-actions span {
+  font-size: 14px;
 }
 
 /* ===== ADD POST BUTTON ===== */

@@ -88,23 +88,7 @@ function Search() {
       <div className="main-content">
         <aside className="left-panel">
           <ul className="leftpanel-animated">
-            <Link to="/home" style={{ textDecoration: "none" }}>
-              <li style={{ "--i": "#a955ff", "--j": "#ea51ff" }}>
-                <div className="icon">
-                  <i className="bi bi-house"></i>
-                </div>
-                <span className="title">{t("home.tabs.home")}</span>
-              </li>
-            </Link>
 
-            <Link to="/search" style={{ textDecoration: "none" }}>
-              <li style={{ "--i": "#56CCF2", "--j": "#2F80ED" }}>
-                <div className="icon">
-                  <i className="bi bi-search"></i>
-                </div>
-                <span className="title">{t("home.tabs.search")}</span>
-              </li>
-            </Link>
 
             <Link to="/room" style={{ textDecoration: "none" }}>
               <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
@@ -112,6 +96,14 @@ function Search() {
                   <i className="bi bi-tv"></i>
                 </div>
                 <span className="title">{t("home.tabs.room")}</span>
+              </li>
+            </Link>
+            <Link to="/search" style={{ textDecoration: "none" }}>
+              <li style={{ "--i": "#56CCF2", "--j": "#2F80ED" }}>
+                <div className="icon">
+                  <i className="bi bi-search"></i>
+                </div>
+                <span className="title">{t("home.tabs.search")}</span>
               </li>
             </Link>
 
@@ -225,7 +217,7 @@ function Search() {
           <div className="reach-out">
             <span>{t("home.reachOut")}</span>
             <a
-              href="https://instagram.com/yourusername"
+              href="https://www.instagram.com/havnlike.space?igsh=ODJ1MnQ0MmVweWdx"
               target="_blank"
               rel="noopener noreferrer"
               className="insta-btn"
@@ -237,12 +229,11 @@ function Search() {
       </div>
 
       <nav className="mobile-bottom-nav">
-        <Link to="/home" style={{ textDecoration: "none" }}>
-          <li style={{ "--i": "#a955ff", "--j": "#ea51ff" }}>
+        <Link to="/room" style={{ textDecoration: "none" }}>
+          <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
             <div className="icon">
-              <i className="bi bi-house"></i>
+              <i className="bi bi-tv"></i>
             </div>
-            <span className="title">{t("home.tabs.home")}</span>
           </li>
         </Link>
         <Link to="/search" style={{ textDecoration: "none" }}>
@@ -250,15 +241,6 @@ function Search() {
             <div className="icon">
               <i className="bi bi-search"></i>
             </div>
-            <span className="title">{t("home.tabs.search")}</span>
-          </li>
-        </Link>
-        <Link to="/room" style={{ textDecoration: "none" }}>
-          <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
-            <div className="icon">
-              <i className="bi bi-tv"></i>
-            </div>
-            <span className="title">{t("home.tabs.room")}</span>
           </li>
         </Link>
         <Link to="/community" style={{ textDecoration: "none" }}>
@@ -266,7 +248,6 @@ function Search() {
             <div className="icon">
               <i className="bi bi-people"></i>
             </div>
-            <span className="title">Community</span>
           </li>
         </Link>
         <Link to="/dm" style={{ textDecoration: "none" }}>
@@ -274,7 +255,6 @@ function Search() {
             <div className="icon">
               <i className="bi bi-chat-dots"></i>
             </div>
-            <span className="title">{t("home.tabs.dm")}</span>
           </li>
         </Link>
         <Link to="/notification" style={{ textDecoration: "none" }}>
@@ -283,7 +263,6 @@ function Search() {
               <i className="bi bi-bell"></i>
               {hasUnread && <span className="notif-dot"></span>}
             </div>
-            <span className="title">{t("home.tabs.notification")}</span>
           </li>
         </Link>
         <Link to="/settings" style={{ textDecoration: "none" }}>
@@ -291,7 +270,6 @@ function Search() {
             <div className="icon">
               <i className="bi bi-gear"></i>
             </div>
-            <span className="title">{t("home.tabs.settings")}</span>
           </li>
         </Link>
         <Link to={`/profile/${username}`} style={{ textDecoration: "none" }}>
@@ -299,7 +277,6 @@ function Search() {
             <div className="icon">
               <i className="bi bi-person"></i>
             </div>
-            <span className="title">{t("home.tabs.profile")}</span>
           </li>
         </Link>
       </nav>
