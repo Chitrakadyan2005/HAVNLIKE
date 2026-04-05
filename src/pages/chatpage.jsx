@@ -20,6 +20,7 @@ function ChatPage() {
   const [hasUnread, setHasUnread] = useState(false);
   const [loading, setLoading] = useState(true);
   const chatRef = useRef();
+  const [showMenu, setShowMenu] = useState(false);
 
   useEffect(() => {
     const checkUnread = async () => {
@@ -39,6 +40,17 @@ function ChatPage() {
     };
 
     checkUnread();
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (emojiRef.current && !emojiRef.current.contains(e.target)) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   useEffect(() => {
@@ -225,15 +237,44 @@ function ChatPage() {
     }
   };
 
+  const handleDelete = async (userId) => {
+    const token = sessionStorage.getItem("token");
+
+    await fetch(`${API_URL}/api/dm/delete/${userId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    window.location.href = "/dm";
+  };
+
+  const handleBlock = async (userId) => {
+    const token = sessionStorage.getItem("token");
+
+    await fetch(`${API_URL}/api/dm/block/${userId}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    window.location.href = "/dm";
+  };
+
+  const handleReport = async (userId) => {
+    const token = sessionStorage.getItem("token");
+
+    await fetch(`${API_URL}/api/dm/report/${userId}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    alert("User reported");
+  };
+
   const onEmojiClick = (emojiData) => {
     setMessage((prev) => prev + emojiData.emoji);
   };
 
   if (!currentUser) return null;
-
-  if (loading) {
-    return <div style={{ padding: "20px" }}>Loading chat...</div>;
-  }
 
   return (
     <div className="chatPage">
@@ -247,7 +288,6 @@ function ChatPage() {
       <div className="main-content">
         <aside className="left-panel">
           <ul className="leftpanel-animated">
-
             <Link to="/room" style={{ textDecoration: "none" }}>
               <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
                 <div className="icon">
@@ -317,50 +357,71 @@ function ChatPage() {
         <section className="feed">
           <div className="dm-chat-container">
             <nav className="dm-navbar">
-              <Link to="/dm" className="back-btn">
-                ←
-              </Link>
-              <div className="chat-user-info">
-                <img
-                  src={userProfiles[username]?.avatarUrl || "/pfps/pfp1.jpg"}
-                  alt={username}
-                  className="chat-navbar-avatar"
-                />
-                <Link
-                  to={`/profile/${username}`}
-                  className="chat-username-link"
-                >
-                  <h3>@{username}</h3>
+              <div className="chat-left">
+                <Link to="/dm" className="back-btn">
+                  ←
                 </Link>
+                <div className="chat-user-info">
+                  <img
+                    src={userProfiles[username]?.avatarUrl || "/pfps/pfp1.jpg"}
+                    alt={username}
+                    className="chat-navbar-avatar"
+                  />
+                  <Link
+                    to={`/profile/${username}`}
+                    className="chat-username-link"
+                  >
+                    <h3>@{username}</h3>
+                  </Link>
+                </div>
+              </div>
+              <div className="chat-actions">
+                <i
+                  className="bi bi-three-dots-vertical"
+                  onClick={() => setShowMenu((prev) => !prev)}
+                ></i>
+
+                {showMenu && (
+                  <div className="chat-dropdown">
+                    <div onClick={() => handleBlock(userId)}>Block</div>
+                    <div onClick={() => handleDelete(userId)}>Delete Chat</div>
+                    <div onClick={() => handleReport(userId)}>Report</div>
+                  </div>
+                )}
               </div>
             </nav>
 
             <div className="dm-chat-body" ref={chatRef}>
-              {messages.map((msg, index) => {
-                const senderUsername = msg.from;
+              {loading ? (
+                <div className="chat-loading">Loading messages...</div>
+              ) : messages.length === 0 ? (
+                <div className="chat-empty">Start chatting ✨</div>
+              ) : (
+                messages.map((msg, index) => {
+                  const senderUsername = msg.from;
+                  const isCurrentUser = senderUsername === currentUser;
+                  const senderProfile = userProfiles[senderUsername];
 
-                const isCurrentUser = senderUsername === currentUser;
-                const senderProfile = userProfiles[senderUsername];
-
-                return (
-                  <div
-                    key={`${msg.from}-${msg.message}-${index}`}
-                    className={`dm-message ${isCurrentUser ? "sent" : "received"}`}
-                  >
-                    {!isCurrentUser && (
-                      <div className="message-sender-info">
-                        <img
-                          src={senderProfile?.avatarUrl || "/pfps/pfp1.jpg"}
-                          alt={senderUsername}
-                          className="message-avatar"
-                        />
-                        <span className="dm-sender">@{senderUsername}</span>
-                      </div>
-                    )}
-                    <div className="dm-bubble">{msg.message}</div>
-                  </div>
-                );
-              })}
+                  return (
+                    <div
+                      key={`${msg.from}-${msg.message}-${index}`}
+                      className={`dm-message ${isCurrentUser ? "sent" : "received"}`}
+                    >
+                      {!isCurrentUser && (
+                        <div className="message-sender-info">
+                          <img
+                            src={senderProfile?.avatarUrl || "/pfps/pfp1.jpg"}
+                            alt={senderUsername}
+                            className="message-avatar"
+                          />
+                          <span className="dm-sender">@{senderUsername}</span>
+                        </div>
+                      )}
+                      <div className="dm-bubble">{msg.message}</div>
+                    </div>
+                  );
+                })
+              )}
             </div>
 
             <div className="dm-input-area">

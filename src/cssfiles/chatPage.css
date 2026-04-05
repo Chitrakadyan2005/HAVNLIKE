@@ -17,13 +17,71 @@
 .dm-navbar {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between; 
   padding: 10px 12px;
   border-bottom: 1px solid var(--rose-200);
   background: #fff;
 }
 
-.chat-user-info { display: flex; align-items: center; gap: 10px; }
+.back-btn {
+  margin-right: 8px;
+}
+
+.chat-loading,
+.chat-empty {
+  text-align: center;
+  margin-top: 20px;
+  color: var(--text-500);
+  font-size: 14px;
+}
+
+.chat-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chat-user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.chat-actions {
+  position: relative;
+}
+
+.chat-actions i {
+  font-size: 20px;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+}
+
+.chat-actions i:hover {
+  background: var(--pink-100);
+}
+
+.chat-dropdown {
+  position: absolute;
+  right: 0;
+  top: 35px;
+  background: white;
+  border: 1px solid var(--rose-200);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.chat-dropdown div {
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.chat-dropdown div:hover {
+  background: var(--pink-100);
+}
+
 .chat-navbar-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--pink-300); }
 .chat-username-link { text-decoration: none; color: inherit; }
 .chat-username-link:hover { color: var(--pink-500); }

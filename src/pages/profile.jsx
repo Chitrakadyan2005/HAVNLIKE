@@ -665,25 +665,29 @@ function Profile() {
                 >
                   Posts
                 </div>
-                <div
-                  className={`stat-item ${activeTab === "liked" ? "active" : ""}`}
-                  onClick={() => {
-                    setActiveTab("liked");
-                    fetchLikedPosts();
-                  }}
-                >
-                  ❤️ Liked
-                </div>
+                {isOwnProfile && (
+                  <>
+                    <div
+                      className={`stat-item ${activeTab === "liked" ? "active" : ""}`}
+                      onClick={() => {
+                        setActiveTab("liked");
+                        fetchLikedPosts();
+                      }}
+                    >
+                      ❤️ Liked
+                    </div>
 
-                <div
-                  className={`stat-item ${activeTab === "commented" ? "active" : ""}`}
-                  onClick={() => {
-                    setActiveTab("commented");
-                    fetchCommentedPosts();
-                  }}
-                >
-                  💬 Commented
-                </div>
+                    <div
+                      className={`stat-item ${activeTab === "commented" ? "active" : ""}`}
+                      onClick={() => {
+                        setActiveTab("commented");
+                        fetchCommentedPosts();
+                      }}
+                    >
+                      💬 Commented
+                    </div>
+                  </>
+                )}
                 <div
                   className={`stat-item ${activeTab === "followers" ? "active" : ""}`}
                   onClick={() => {
@@ -739,7 +743,7 @@ function Profile() {
                       ? "Followers"
                       : "Following"}
             </h3>
-            {activeTab === "liked" && (
+            {isOwnProfile && activeTab === "liked" && (
               <div className="post-grid">
                 {loadingActivity ? (
                   <p>Loading...</p>
@@ -765,7 +769,7 @@ function Profile() {
               </div>
             )}
 
-            {activeTab === "commented" && (
+            {isOwnProfile && activeTab === "commented" && (
               <div className="post-grid">
                 {loadingActivity ? (
                   <p>Loading...</p>
@@ -855,15 +859,18 @@ function Profile() {
             {activeTab === "followers" && (
               <div className="followers-list">
                 {followersList.map((user) => (
-                  <div className="follower-item" key={user.id}>
+                  <Link
+                    to={`/profile/${user.username}`}
+                    className="follower-item"
+                  >
                     <img
                       src={getAvatar(user.avatarUrl)}
                       alt={user.username}
                       className="follower-avatar"
                       onError={(e) => (e.target.src = "/pfps/default.png")}
                     />
-                    <span>{user.username}</span>
-                  </div>
+                    <span>@{user.username}</span>
+                  </Link>
                 ))}
               </div>
             )}
@@ -871,15 +878,18 @@ function Profile() {
             {activeTab === "following" && (
               <div className="following-list">
                 {followingList.map((user) => (
-                  <div className="follower-item" key={user.id}>
+                  <Link
+                    to={`/profile/${user.username}`}
+                    className="follower-item"
+                  >
                     <img
                       src={getAvatar(user.avatarUrl)}
                       alt={user.username}
                       className="follower-avatar"
                       onError={(e) => (e.target.src = "/pfps/default.png")}
                     />
-                    <span>{user.username}</span>
-                  </div>
+                    <span>@{user.username}</span>
+                  </Link>
                 ))}
               </div>
             )}

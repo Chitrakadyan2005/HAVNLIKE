@@ -47,7 +47,50 @@
   margin: 2px 0 0;
   color: var(--text-700);
 }
-.chat-time {
-  color: var(--text-500);
-  font-size: 12px;
+.chat-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.menu-wrapper {
+  position: relative;
+}
+
+.menu-icon {
+  font-size: 16px;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+}
+
+.menu-icon:hover {
+  background: var(--pink-100);
+}
+
+.menu-dropdown {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 28px;
+  background: white;
+  border: 1px solid var(--rose-200);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  z-index: 100;
+  min-width: 140px;
+}
+
+.menu-dropdown div {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.menu-dropdown div:hover {
+  background: var(--pink-100);
+}
+
+/* SHOW ON HOVER */
+.menu-wrapper:hover .menu-dropdown {
+  display: block;
 }

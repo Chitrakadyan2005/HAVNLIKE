@@ -32,6 +32,20 @@
 .message-button, .follow-button { padding: 10px 14px; border: 0; border-radius: 10px; background: var(--pink-500); color: #fff; box-shadow: var(--shadow); cursor: pointer; }
 .follow-button.following { background: var(--pink-300); color: var(--text-900); }
 
+.follower-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.follower-item:hover {
+  background: var(--pink-100);
+  border-radius: 10px;
+}
+
 /* Posts grid */
 .user-posts { margin-top: 16px; background: rgba(255,255,255,0.8); border: 1px solid var(--rose-200); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 16px; }
 .post-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }

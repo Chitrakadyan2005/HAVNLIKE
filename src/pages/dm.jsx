@@ -145,6 +145,55 @@ function Dm() {
 
   if (!username) return null;
 
+  const token = sessionStorage.getItem("token");
+
+  const handleDelete = async (userId) => {
+    if (!window.confirm("Delete this chat?")) return;
+
+    try {
+      await fetch(`${API_URL}/api/dm/chat/${userId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setConversations((prev) => prev.filter((c) => c.id !== userId));
+    } catch (err) {
+      alert("Failed to delete chat");
+    }
+  };
+
+  const handleBlock = async (userId) => {
+    if (!window.confirm("Block this user?")) return;
+
+    try {
+      await fetch(`${API_URL}/api/dm/block/${userId}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setConversations((prev) => prev.filter((c) => c.id !== userId));
+    } catch (err) {
+      alert("Failed to block user");
+    }
+  };
+
+  const handleReport = async (userId) => {
+    try {
+      await fetch(`${API_URL}/api/dm/report/${userId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ reason: "spam/abuse" }),
+      });
+
+      alert("User reported");
+    } catch (err) {
+      alert("Failed to report");
+    }
+  };
+
   return (
     <div className="dmPage">
       <img
@@ -157,7 +206,6 @@ function Dm() {
       <div className="main-content">
         <aside className="left-panel">
           <ul className="leftpanel-animated">
-
             <Link to="/room" style={{ textDecoration: "none" }}>
               <li style={{ "--i": "#80FF72", "--j": "#7EE8FA" }}>
                 <div className="icon">
@@ -239,7 +287,7 @@ function Dm() {
                     .includes(query.toLowerCase()),
               )
               .map((conv, index) => (
-                <Link
+                <div
                   key={conv.id}
                   className="chat-card"
                   onClick={() => handleOpenChat(conv)}
@@ -255,8 +303,32 @@ function Dm() {
                       {conv.lastMessage || t("dm.noMessages")}
                     </p>
                   </div>
-                  <span className="chat-time">{conv.time || t("dm.now")}</span>
-                </Link>
+                  <div className="chat-actions">
+                    <span className="chat-time">
+                      {conv.time || t("dm.now")}
+                    </span>
+
+                    <div className="menu-wrapper">
+                      <i
+                        className="bi bi-three-dots-vertical menu-icon"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+
+                      <div
+                        className="menu-dropdown"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div onClick={() => handleDelete(conv.id)}>
+                          Delete Chat
+                        </div>
+                        <div onClick={() => handleBlock(conv.id)}>
+                          Block User
+                        </div>
+                        <div onClick={() => handleReport(conv.id)}>Report</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               ))}
           </div>
         </section>
